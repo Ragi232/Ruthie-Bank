@@ -142,6 +142,54 @@ export const ProfileSettingsScreen: React.FC = () => {
         </div>
       </div>
 
+      {/* Services & Quick Navigation */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <button
+          onClick={() => {
+            playHaptic('light');
+            setCurrentScreen('notifications');
+          }}
+          className="p-4 rounded-2xl bg-white/70 dark:bg-[#071726]/80 hover:bg-white dark:hover:bg-white/10 border border-slate-200/80 dark:border-white/10 text-left transition-all group cursor-pointer shadow-sm"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <Bell size={18} className="text-emerald-500 group-hover:scale-110 transition-transform" />
+            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">View All →</span>
+          </div>
+          <h4 className="text-xs font-bold text-slate-900 dark:text-white">Notifications Center</h4>
+          <p className="text-[11px] text-slate-400 mt-0.5">Manage transaction alerts & security notices</p>
+        </button>
+
+        <button
+          onClick={() => {
+            playHaptic('light');
+            setCurrentScreen('support');
+          }}
+          className="p-4 rounded-2xl bg-white/70 dark:bg-[#071726]/80 hover:bg-white dark:hover:bg-white/10 border border-slate-200/80 dark:border-white/10 text-left transition-all group cursor-pointer shadow-sm"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <HelpCircle size={18} className="text-sky-500 group-hover:scale-110 transition-transform" />
+            <span className="text-[10px] font-bold text-sky-500">24/7 Care →</span>
+          </div>
+          <h4 className="text-xs font-bold text-slate-900 dark:text-white">Concierge & Support</h4>
+          <p className="text-[11px] text-slate-400 mt-0.5">Open dispute tickets or live chat with wealth advisor</p>
+        </button>
+
+        <button
+          onClick={() => {
+            playHaptic('light');
+            setCurrentScreen('admin');
+          }}
+          className="p-4 rounded-2xl bg-white/70 dark:bg-[#071726]/80 hover:bg-white dark:hover:bg-white/10 border border-slate-200/80 dark:border-white/10 text-left transition-all group cursor-pointer shadow-sm"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <ShieldCheck size={18} className="text-purple-500 group-hover:scale-110 transition-transform" />
+            <span className="text-[10px] font-bold text-purple-500">Console →</span>
+          </div>
+          <h4 className="text-xs font-bold text-slate-900 dark:text-white">Admin Management</h4>
+          <p className="text-[11px] text-slate-400 mt-0.5">Staff audit ledger, KYC queue & FX spreads</p>
+        </button>
+      </div>
+
       {/* Security & Biometrics Section */}
       <div className="rounded-[32px] p-6 bg-white/75 dark:bg-[#071726]/80 backdrop-blur-3xl border border-slate-200/90 dark:border-white/15 shadow-sm space-y-4">
         <h3 className="text-sm font-bold text-slate-900 dark:text-white">
@@ -280,6 +328,54 @@ export const ProfileSettingsScreen: React.FC = () => {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Services & Quick Navigation */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <button
+          onClick={() => {
+            playHaptic('light');
+            setCurrentScreen('notifications');
+          }}
+          className="p-4 rounded-2xl bg-white/70 dark:bg-[#071726]/80 hover:bg-white dark:hover:bg-white/10 border border-slate-200/80 dark:border-white/10 text-left transition-all group cursor-pointer shadow-sm"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <Bell size={18} className="text-emerald-500 group-hover:scale-110 transition-transform" />
+            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">View All →</span>
+          </div>
+          <h4 className="text-xs font-bold text-slate-900 dark:text-white">Notifications Center</h4>
+          <p className="text-[11px] text-slate-400 mt-0.5">Manage transaction alerts & security notices</p>
+        </button>
+
+        <button
+          onClick={() => {
+            playHaptic('light');
+            setCurrentScreen('support');
+          }}
+          className="p-4 rounded-2xl bg-white/70 dark:bg-[#071726]/80 hover:bg-white dark:hover:bg-white/10 border border-slate-200/80 dark:border-white/10 text-left transition-all group cursor-pointer shadow-sm"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <HelpCircle size={18} className="text-sky-500 group-hover:scale-110 transition-transform" />
+            <span className="text-[10px] font-bold text-sky-500">24/7 Care →</span>
+          </div>
+          <h4 className="text-xs font-bold text-slate-900 dark:text-white">Concierge & Support</h4>
+          <p className="text-[11px] text-slate-400 mt-0.5">Open dispute tickets or live chat with wealth advisor</p>
+        </button>
+
+        <button
+          onClick={() => {
+            playHaptic('light');
+            setCurrentScreen('admin');
+          }}
+          className="p-4 rounded-2xl bg-white/70 dark:bg-[#071726]/80 hover:bg-white dark:hover:bg-white/10 border border-slate-200/80 dark:border-white/10 text-left transition-all group cursor-pointer shadow-sm"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <ShieldCheck size={18} className="text-purple-500 group-hover:scale-110 transition-transform" />
+            <span className="text-[10px] font-bold text-purple-500">Console →</span>
+          </div>
+          <h4 className="text-xs font-bold text-slate-900 dark:text-white">Admin Management</h4>
+          <p className="text-[11px] text-slate-400 mt-0.5">Staff audit ledger, KYC queue & FX spreads</p>
+        </button>
       </div>
 
       {/* Appearance & Preferences */}

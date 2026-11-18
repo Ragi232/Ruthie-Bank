@@ -32,18 +32,22 @@ export const GlassNavigationBar: React.FC = () => {
       aria-label="Bottom Navigation"
       className="fixed bottom-4 inset-x-0 z-40 flex justify-center px-4 md:hidden pointer-events-none"
     >
-      <div className="pointer-events-auto flex items-center justify-around w-full max-w-md px-3 py-2 rounded-full bg-slate-900/80 dark:bg-[#071726]/85 text-white backdrop-blur-3xl border border-white/15 shadow-[0_16px_40px_rgba(0,0,0,0.45)]">
+      <div className="liquid-glass pointer-events-auto flex items-center justify-around w-full max-w-md px-3 py-2 rounded-full bg-slate-900/80 dark:bg-[#071726]/85 text-white backdrop-blur-3xl border border-white/15 shadow-[0_16px_40px_rgba(0,0,0,0.45)]">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive =
             currentScreen === item.screen ||
             (item.screen === 'dashboard' &&
               (currentScreen === 'transfers' ||
+                currentScreen === 'withdrawals' ||
                 currentScreen === 'savings' ||
                 currentScreen === 'investments' ||
                 currentScreen === 'loans' ||
                 currentScreen === 'bills' ||
-                currentScreen === 'bookings'));
+                currentScreen === 'bookings' ||
+                currentScreen === 'support' ||
+                currentScreen === 'admin')) ||
+            (item.screen === 'profile' && currentScreen === 'notifications');
 
           return (
             <button

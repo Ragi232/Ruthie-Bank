@@ -31,13 +31,9 @@ export const InvestmentsScreen: React.FC = () => {
   const [isInvesting, setIsInvesting] = useState(false);
 
   // Portfolio total
-  const totalInvestedNGN = userInvestments.reduce((acc, inv) => {
-    return acc + (inv.currency === 'NGN' ? inv.currentValue : inv.currentValue * 1540.5);
-  }, 0);
+  const totalInvestedNGN = userInvestments.reduce((acc, inv) => acc + (inv.currency === 'NGN' ? inv.currentValue : 0), 0);
 
-  const totalAccruedReturn = userInvestments.reduce((acc, inv) => {
-    return acc + (inv.currency === 'NGN' ? inv.accruedReturn : inv.accruedReturn * 1540.5);
-  }, 0);
+  const totalAccruedReturn = userInvestments.reduce((acc, inv) => acc + (inv.currency === 'NGN' ? inv.accruedReturn : 0), 0);
 
   const handleOpenBuy = (p: InvestmentProduct) => {
     playHaptic('light');

@@ -33,5 +33,10 @@
   "overrides": {
     "deepmerge-ts": "^8.0.0",
     "postcss": "^8.5.23"
+  },
+  "allowScripts": {
+    "@prisma/client": true,
+    "@prisma/engines": true,
+    "prisma": true
   }
 }

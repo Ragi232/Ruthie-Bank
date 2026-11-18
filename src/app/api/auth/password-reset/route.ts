@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { consumeOtp, hashPassword, allowAuthAttempt } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { consumeOtpAnd, hashPassword, allowAuthAttempt } from "@/lib/auth";
 import { passwordResetCompleteSchema } from "@/lib/validation";
 
 export async function POST(request: Request) {
@@ -9,12 +8,12 @@ export async function POST(request: Request) {
   const { email: rawEmail, code, password } = parsed.data;
   const email = rawEmail.toLowerCase();
   if (!(await allowAuthAttempt(request, email))) return NextResponse.json({ error: { code: "RATE_LIMITED", message: "Too many attempts. Try again later." } }, { status: 429 });
-  const user = await consumeOtp(email, code, "RESET_PASSWORD");
-  if (!user) return NextResponse.json({ error: { code: "INVALID_CHALLENGE", message: "The reset code is invalid or expired." } }, { status: 400 });
   const passwordHash = await hashPassword(password);
-  await prisma.$transaction([
-    prisma.user.update({ where: { id: user.id }, data: { passwordHash } }),
-    prisma.authSession.updateMany({ where: { userId: user.id, revokedAt: null }, data: { revokedAt: new Date() } }),
-  ]);
+  const updated = await consumeOtpAnd(email, code, "RESET_PASSWORD", async (tx, user) => {
+    await tx.user.update({ where: { id: user.id }, data: { passwordHash } });
+    await tx.authSession.updateMany({ where: { userId: user.id, revokedAt: null }, data: { revokedAt: new Date() } });
+    return true;
+  });
+  if (!updated) return NextResponse.json({ error: { code: "INVALID_CHALLENGE", message: "The reset code is invalid or expired." } }, { status: 400 });
   return NextResponse.json({ message: "Password updated. Sign in with your new password." });
 }

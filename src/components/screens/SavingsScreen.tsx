@@ -86,7 +86,7 @@ export const SavingsScreen: React.FC = () => {
             Ruthie Vault & Savings
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            Compound interest up to 18.5% APY, locked treasury vaults, and automated daily goals
+            Sandbox preview: sample savings goals and illustrative rates only. No interest is earned or credited.
           </p>
         </div>
 
@@ -107,7 +107,7 @@ export const SavingsScreen: React.FC = () => {
         <div className="md:col-span-2 space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[11px] font-bold">
             <Sparkles size={14} />
-            <span>Compounding Daily at 18.5% Max APY</span>
+            <span>ILLUSTRATIVE DEMO RATE · NOT AN OFFER</span>
           </div>
           <p className="text-xs uppercase tracking-wider text-slate-300 font-medium">
             Total Saved Across All Goals
@@ -116,7 +116,7 @@ export const SavingsScreen: React.FC = () => {
             ₦{totalSaved.toLocaleString('en-US', { minimumFractionDigits: 2 })}
           </h2>
           <p className="text-xs text-emerald-300 font-semibold">
-            +₦50,128.40 interest already credited to your balance this month
+            Simulated sample data · no interest credited
           </p>
         </div>
 

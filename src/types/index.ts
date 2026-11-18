@@ -7,6 +7,7 @@ export type ScreenType =
   | 'dashboard'
   | 'wallets'
   | 'transfers'
+  | 'withdrawals'
   | 'savings'
   | 'investments'
   | 'loans'
@@ -14,7 +15,10 @@ export type ScreenType =
   | 'bookings'
   | 'ai'
   | 'history'
-  | 'profile';
+  | 'notifications'
+  | 'profile'
+  | 'support'
+  | 'admin';
 
 export type AuthSubView =
   | 'login'
@@ -66,6 +70,7 @@ export interface WalletBalance {
 export type TransactionType =
   | 'TRANSFER_OUT'
   | 'TRANSFER_IN'
+  | 'WITHDRAWAL'
   | 'EXCHANGE'
   | 'BILL_PAYMENT'
   | 'AIRTIME'
@@ -223,10 +228,49 @@ export interface DeviceInfo {
   current: boolean;
 }
 
+export type DynamicIslandType =
+  | 'incoming'
+  | 'outgoing'
+  | 'status'
+  | 'security'
+  | 'savings'
+  | 'investment'
+  | 'ai'
+  | 'success';
+
+export interface DynamicIslandAction {
+  label: string;
+  action: () => void;
+  variant?: 'primary' | 'secondary' | 'danger';
+}
+
 export interface DynamicIslandState {
   active: boolean;
   title: string;
   subtitle?: string;
-  type: 'incoming' | 'outgoing' | 'ai' | 'security' | 'success';
+  type: DynamicIslandType;
   expanded?: boolean;
+  progress?: number; // 0 - 100 for live transaction status
+  amount?: string;
+  reference?: string;
+  category?: string;
+  primaryAction?: DynamicIslandAction;
+  secondaryAction?: DynamicIslandAction;
+  autoDismissMs?: number;
+}
+
+export interface SupportTicketItem {
+  id: string;
+  subject: string;
+  category: 'dispute' | 'card' | 'transfer' | 'kyc' | 'general';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  status: 'OPEN' | 'IN_REVIEW' | 'RESOLVED';
+  createdAt: string;
+  messages: {
+    id: string;
+    sender: 'user' | 'agent';
+    senderName: string;
+    text: string;
+    timestamp: string;
+  }[];
 }

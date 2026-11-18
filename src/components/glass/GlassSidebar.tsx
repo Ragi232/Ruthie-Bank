@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Wallet,
   ArrowLeftRight,
+  ArrowDownLeft,
   PiggyBank,
   TrendingUp,
   CreditCard,
@@ -19,11 +20,16 @@ import {
   Sun,
   Moon,
   LogOut,
+  Bell,
+  Headphones,
+  Layers,
 } from 'lucide-react';
 import { ScreenType } from '@/types';
 
 export const GlassSidebar: React.FC = () => {
-  const { currentScreen, setCurrentScreen, user, theme, toggleTheme, playHaptic, setIsAuthenticated } = useBank();
+  const { currentScreen, setCurrentScreen, user, theme, toggleTheme, playHaptic, setIsAuthenticated, notifications } = useBank();
+
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   const navGroups: {
     title: string;
@@ -35,6 +41,7 @@ export const GlassSidebar: React.FC = () => {
         { label: 'Overview', screen: 'dashboard', icon: LayoutDashboard },
         { label: 'Wallets & FX', screen: 'wallets', icon: Wallet },
         { label: 'Transfers', screen: 'transfers', icon: ArrowLeftRight },
+        { label: 'Withdrawals & ATM', screen: 'withdrawals', icon: ArrowDownLeft },
         { label: 'Transaction History', screen: 'history', icon: History },
       ],
     },
@@ -54,6 +61,14 @@ export const GlassSidebar: React.FC = () => {
         { label: 'Ruthie AI Assistant', screen: 'ai', icon: Sparkles, badge: '✦ AI' },
       ],
     },
+    {
+      title: 'SERVICES & GOVERNANCE',
+      items: [
+        { label: 'Notifications', screen: 'notifications', icon: Bell, badge: unreadCount > 0 ? `${unreadCount}` : undefined },
+        { label: 'Concierge & Support', screen: 'support', icon: Headphones },
+        { label: 'Admin Console', screen: 'admin', icon: Layers, badge: 'Staff' },
+      ],
+    },
   ];
 
   const handleNavClick = (screen: ScreenType) => {
@@ -70,7 +85,7 @@ export const GlassSidebar: React.FC = () => {
   return (
     <aside
       aria-label="Desktop Sidebar"
-      className="hidden md:flex flex-col w-72 shrink-0 h-screen sticky top-0 overflow-y-auto border-r border-slate-200/80 dark:border-white/10 bg-white/70 dark:bg-[#061423]/80 backdrop-blur-3xl px-5 py-6 select-none transition-colors duration-300"
+      className="liquid-glass hidden md:flex flex-col w-72 shrink-0 h-screen sticky top-0 overflow-y-auto border-r border-slate-200/80 dark:border-white/10 bg-white/70 dark:bg-[#061423]/80 backdrop-blur-3xl px-5 py-6 select-none transition-colors duration-300"
     >
       {/* Brand Header */}
       <div className="flex items-center gap-3.5 mb-7 px-1">

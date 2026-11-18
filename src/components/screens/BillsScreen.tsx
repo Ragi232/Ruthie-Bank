@@ -19,9 +19,16 @@ import {
 } from 'lucide-react';
 
 export const BillsScreen: React.FC = () => {
-  const { payBillOrAirtime, playHaptic, showDynamicIsland } = useBank();
+  const { payBillOrAirtime, playHaptic, showDynamicIsland, billsActiveTab, setBillsActiveTab } = useBank();
 
-  const [activeTab, setActiveTab] = useState<'airtime' | 'data' | 'electricity' | 'cable' | 'internet'>('airtime');
+  const [activeTab, setActiveTab] = useState<'airtime' | 'data' | 'electricity' | 'cable' | 'internet'>(billsActiveTab || 'airtime');
+
+  // Synchronize when billsActiveTab changes
+  React.useEffect(() => {
+    if (billsActiveTab) {
+      setActiveTab(billsActiveTab);
+    }
+  }, [billsActiveTab]);
 
   // Telco state
   const [selectedTelco, setSelectedTelco] = useState('MTN Nigeria');
@@ -143,6 +150,7 @@ export const BillsScreen: React.FC = () => {
         activeTab={activeTab}
         onChange={(tab) => {
           setActiveTab(tab);
+          setBillsActiveTab(tab);
           setGeneratedToken(null);
         }}
       />

@@ -74,7 +74,7 @@ export const GlassModal: React.FC<GlassModalProps> = ({
 
       {/* Modal Surface */}
       <div
-        className={`relative w-full ${getMaxWidthClass()} rounded-3xl bg-white/90 dark:bg-[#071726]/90 backdrop-blur-3xl border border-slate-200/90 dark:border-white/15 p-6 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.4)] dark:shadow-[0_25px_70px_rgba(0,0,0,0.8)] z-10 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200`}
+        className={`liquid-glass relative w-full ${getMaxWidthClass()} rounded-3xl bg-white/90 dark:bg-[#071726]/90 backdrop-blur-3xl border border-slate-200/90 dark:border-white/15 p-6 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.4)] dark:shadow-[0_25px_70px_rgba(0,0,0,0.8)] z-10 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200`}
       >
         <div className="flex items-start justify-between gap-4 mb-5">
           <div>

@@ -179,6 +179,12 @@ export const TransfersScreen: React.FC = () => {
         </p>
       </div>
 
+      {/* Sandbox Notice */}
+      <div className="flex items-center justify-between px-3.5 py-2 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-800 dark:text-amber-200">
+        <span className="font-semibold">Sandbox Transfer Simulator · Live NIP/SWIFT Rails Not Connected</span>
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/20 font-bold">DEMO PREVIEW</span>
+      </div>
+
       {/* Segmented Control Tabs */}
       <GlassTabBar
         tabs={[
@@ -452,8 +458,7 @@ export const TransfersScreen: React.FC = () => {
           <GlassPinKeypad
             pin={pin}
             onChange={handlePinSubmit}
-            showBiometric={true}
-            onBiometric={() => handlePinSubmit('123456')}
+            showBiometric={false}
           />
         </div>
       </GlassModal>

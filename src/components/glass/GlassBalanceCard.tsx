@@ -100,7 +100,7 @@ export const GlassBalanceCard: React.FC = () => {
           onClick={handleCopyAccount}
           className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 text-[11px] font-mono border border-white/15 transition-colors"
         >
-          <span>Acct: {user.accountNumber}</span>
+          <span>Demo acct: {user.accountNumber}</span>
           {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
         </button>
       </div>

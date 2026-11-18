@@ -14,6 +14,7 @@ import { AuthScreen } from '@/components/screens/AuthScreen';
 import { DashboardScreen } from '@/components/screens/DashboardScreen';
 import { WalletsScreen } from '@/components/screens/WalletsScreen';
 import { TransfersScreen } from '@/components/screens/TransfersScreen';
+import { WithdrawalsScreen } from '@/components/screens/WithdrawalsScreen';
 import { SavingsScreen } from '@/components/screens/SavingsScreen';
 import { InvestmentsScreen } from '@/components/screens/InvestmentsScreen';
 import { LoansScreen } from '@/components/screens/LoansScreen';
@@ -21,7 +22,10 @@ import { BillsScreen } from '@/components/screens/BillsScreen';
 import { BookingsScreen } from '@/components/screens/BookingsScreen';
 import { RuthieAIScreen } from '@/components/screens/RuthieAIScreen';
 import { TransactionHistoryScreen } from '@/components/screens/TransactionHistoryScreen';
+import { NotificationsScreen } from '@/components/screens/NotificationsScreen';
 import { ProfileSettingsScreen } from '@/components/screens/ProfileSettingsScreen';
+import { SupportScreen } from '@/components/screens/SupportScreen';
+import { AdminDashboardScreen } from '@/components/screens/AdminDashboardScreen';
 
 function BankAppContent() {
   const { currentScreen, isAuthenticated } = useBank();
@@ -48,6 +52,8 @@ function BankAppContent() {
         return <WalletsScreen />;
       case 'transfers':
         return <TransfersScreen />;
+      case 'withdrawals':
+        return <WithdrawalsScreen />;
       case 'savings':
         return <SavingsScreen />;
       case 'investments':
@@ -62,8 +68,14 @@ function BankAppContent() {
         return <RuthieAIScreen />;
       case 'history':
         return <TransactionHistoryScreen />;
+      case 'notifications':
+        return <NotificationsScreen />;
       case 'profile':
         return <ProfileSettingsScreen />;
+      case 'support':
+        return <SupportScreen />;
+      case 'admin':
+        return <AdminDashboardScreen />;
       default:
         return <DashboardScreen />;
     }
@@ -81,7 +93,7 @@ function BankAppContent() {
       <GlassSidebar />
 
       {/* Main Responsive Viewport */}
-      <main className="relative z-10 flex-1 min-w-0 px-4 sm:px-8 py-5 md:py-7 overflow-y-auto min-h-screen">
+      <main className="relative z-10 flex-1 min-w-0 px-4 sm:px-8 pt-20 sm:pt-24 md:pt-20 pb-28 md:pb-8 overflow-y-auto min-h-screen">
         {renderScreen()}
       </main>
 

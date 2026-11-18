@@ -2,6 +2,7 @@ import { createHash, createHmac, randomBytes, scrypt as scryptCallback, timingSa
 import { promisify } from "node:util";
 import { cookies, headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 
 const scrypt = promisify(scryptCallback) as (password: string, salt: Buffer, keylen: number, options: { N: number; r: number; p: number; maxmem: number }) => Promise<Buffer>;
 const SESSION_COOKIE = "ruthie_session";
@@ -101,7 +102,7 @@ export async function allowAuthAttempt(request: Request, identity: string) {
   return rows.every((row) => row.count <= 10);
 }
 
-export async function consumeOtp(email: string, code: string, purpose: "VERIFY_EMAIL" | "RESET_PASSWORD") {
+export async function consumeOtpAnd<T>(email: string, code: string, purpose: "VERIFY_EMAIL" | "RESET_PASSWORD", action: (tx: Prisma.TransactionClient, user: NonNullable<Awaited<ReturnType<typeof prisma.user.findUnique>>>) => Promise<T>) {
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) return null;
   const challenge = await prisma.otpChallenge.findFirst({
@@ -112,9 +113,16 @@ export async function consumeOtp(email: string, code: string, purpose: "VERIFY_E
   const supplied = Buffer.from(hashOtp(code, user.id, purpose), "hex");
   const expected = Buffer.from(challenge.codeHash, "hex");
   if (supplied.length !== expected.length || !timingSafeEqual(supplied, expected)) {
-    await prisma.otpChallenge.updateMany({ where: { id: challenge.id, consumedAt: null, attempts: { lt: 5 } }, data: { attempts: { increment: 1 } } });
+    await prisma.otpChallenge.updateMany({ where: { id: challenge.id, consumedAt: null, expiresAt: { gt: new Date() }, attempts: { lt: 5 } }, data: { attempts: { increment: 1 } } });
     return null;
   }
-  const consumed = await prisma.otpChallenge.updateMany({ where: { id: challenge.id, consumedAt: null, expiresAt: { gt: new Date() }, attempts: { lt: 5 } }, data: { consumedAt: new Date() } });
-  return consumed.count === 1 ? user : null;
+  return prisma.$transaction(async (tx) => {
+    const consumed = await tx.otpChallenge.updateMany({ where: { id: challenge.id, consumedAt: null, expiresAt: { gt: new Date() }, attempts: { lt: 5 } }, data: { consumedAt: new Date() } });
+    if (consumed.count !== 1) return null;
+    return action(tx, user);
+  });
+}
+
+export async function consumeOtp(email: string, code: string, purpose: "VERIFY_EMAIL" | "RESET_PASSWORD") {
+  return consumeOtpAnd(email, code, purpose, async (_tx, user) => user);
 }

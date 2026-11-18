@@ -8,12 +8,15 @@ import {
   BookingItem,
   CurrencyCode,
   DeviceInfo,
+  DynamicIslandAction,
   DynamicIslandState,
+  DynamicIslandType,
   InvestmentProduct,
   LoanEligibility,
   NotificationItem,
   SavingsGoal,
   ScreenType,
+  SupportTicketItem,
   TransactionRecord,
   UserInvestment,
   UserProfile,
@@ -69,12 +72,54 @@ interface BankContextType {
   notifications: NotificationItem[];
   devices: DeviceInfo[];
 
+  // Subtab navigation for Bills
+  billsActiveTab: 'airtime' | 'data' | 'electricity' | 'cable' | 'internet';
+  setBillsActiveTab: (tab: 'airtime' | 'data' | 'electricity' | 'cable' | 'internet') => void;
+
+  // Support Tickets
+  supportTickets: SupportTicketItem[];
+  createSupportTicket: (params: {
+    subject: string;
+    category: SupportTicketItem['category'];
+    priority: SupportTicketItem['priority'];
+    message: string;
+  }) => SupportTicketItem;
+  sendTicketReply: (ticketId: string, text: string) => void;
+
+  // Admin Console State & Actions
+  adminUsers: Array<{
+    id: string;
+    name: string;
+    email: string;
+    phone: string;
+    tier: number;
+    status: 'ACTIVE' | 'LOCKED';
+    balance: string;
+    kycVerified: boolean;
+    joinedDate: string;
+  }>;
+  adminUpdateUserStatus: (userId: string, status: 'ACTIVE' | 'LOCKED') => void;
+  adminApproveKyc: (userId: string, tier: 1 | 2 | 3) => void;
+
   // Dynamic Island
   dynamicIsland: DynamicIslandState;
   showDynamicIsland: (
-    title: string,
+    titleOrPayload:
+      | string
+      | {
+          title: string;
+          subtitle?: string;
+          type?: DynamicIslandType;
+          amount?: string;
+          reference?: string;
+          expanded?: boolean;
+          progress?: number;
+          durationMs?: number;
+          primaryAction?: DynamicIslandAction;
+          secondaryAction?: DynamicIslandAction;
+        },
     subtitle?: string,
-    type?: DynamicIslandState['type'],
+    type?: DynamicIslandType,
     durationMs?: number
   ) => void;
   dismissDynamicIsland: () => void;
@@ -93,6 +138,16 @@ interface BankContextType {
     description: string;
     fee?: number;
   }) => Promise<{ success: boolean; transaction?: TransactionRecord; error?: string }>;
+
+  withdrawMoney: (params: {
+    method: 'atm' | 'bank';
+    amount: number;
+    currency: CurrencyCode;
+    bankName?: string;
+    accountNumber?: string;
+    recipientName?: string;
+    description?: string;
+  }) => Promise<{ success: boolean; cashCode?: string; transaction?: TransactionRecord; error?: string }>;
 
   convertCurrency: (params: {
     fromCurrency: CurrencyCode;
@@ -151,6 +206,120 @@ export const BankProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loanEligibility, setLoanEligibility] = useState<LoanEligibility>(initialLoanEligibility);
   const [notifications, setNotifications] = useState<NotificationItem[]>(initialNotifications);
   const [activeReceipt, setActiveReceipt] = useState<TransactionRecord | null>(null);
+
+  // Subtab navigation for Bills
+  const [billsActiveTab, setBillsActiveTab] = useState<'airtime' | 'data' | 'electricity' | 'cable' | 'internet'>('airtime');
+
+  // Customer Support Tickets
+  const [supportTickets, setSupportTickets] = useState<SupportTicketItem[]>([
+    {
+      id: 'TICK-8092',
+      subject: 'Virtual Card Foreign Currency Limit Extension',
+      category: 'card',
+      priority: 'medium',
+      status: 'IN_REVIEW',
+      createdAt: 'Today, 14:22',
+      messages: [
+        {
+          id: 'm1',
+          sender: 'user',
+          senderName: 'Ruthie Adebayo',
+          text: 'Hello, I need to raise my USD card monthly limit for international software subscriptions.',
+          timestamp: '14:22',
+        },
+        {
+          id: 'm2',
+          sender: 'agent',
+          senderName: 'Chiamaka (Ruthie Concierge)',
+          text: 'Greetings Ruthie. Your Tier 3 status qualifies you for an instant increase up to $25,000/month. Our compliance desk is finalizing the approval.',
+          timestamp: '14:25',
+        },
+      ],
+    },
+    {
+      id: 'TICK-7934',
+      subject: 'Eurobond Coupon Payment Schedule Confirmation',
+      category: 'general',
+      priority: 'low',
+      status: 'RESOLVED',
+      createdAt: 'Yesterday, 10:15',
+      messages: [
+        {
+          id: 'm1',
+          sender: 'user',
+          senderName: 'Ruthie Adebayo',
+          text: 'Please confirm when the next 9.85% FRN Eurobond coupon distribution settles.',
+          timestamp: '10:15',
+        },
+        {
+          id: 'm2',
+          sender: 'agent',
+          senderName: 'Emeka (Securities Desk)',
+          text: 'The coupon pays semiannually on June 15 and December 15 directly to your USD wallet.',
+          timestamp: '10:18',
+        },
+      ],
+    },
+  ]);
+
+  // Executive Admin Mock Data
+  const [adminUsers, setAdminUsers] = useState([
+    {
+      id: 'usr_1',
+      name: 'Ruthie Adebayo',
+      email: 'ruthie.adebayo@ruthiebank.com',
+      phone: '+234 812 345 6789',
+      tier: 3,
+      status: 'ACTIVE' as const,
+      balance: '₦8,245,950.00',
+      kycVerified: true,
+      joinedDate: '12 Jan 2026',
+    },
+    {
+      id: 'usr_2',
+      name: 'Amina Yusuf',
+      email: 'amina.yusuf@acme.ng',
+      phone: '+234 803 111 2233',
+      tier: 2,
+      status: 'ACTIVE' as const,
+      balance: '₦1,420,000.00',
+      kycVerified: true,
+      joinedDate: '04 Mar 2026',
+    },
+    {
+      id: 'usr_3',
+      name: 'Chukwuma Eze',
+      email: 'chukwuma.eze@techcorp.io',
+      phone: '+234 809 998 7766',
+      tier: 1,
+      status: 'ACTIVE' as const,
+      balance: '₦320,500.00',
+      kycVerified: false,
+      joinedDate: '15 May 2026',
+    },
+    {
+      id: 'usr_4',
+      name: 'Damilola Adeleke',
+      email: 'dami.adeleke@lagosfin.com',
+      phone: '+234 701 555 4433',
+      tier: 2,
+      status: 'ACTIVE' as const,
+      balance: '₦4,850,000.00',
+      kycVerified: true,
+      joinedDate: '22 Aug 2026',
+    },
+    {
+      id: 'usr_5',
+      name: 'Kelechi Nwosu',
+      email: 'k.nwosu@horizon.ng',
+      phone: '+234 818 222 9900',
+      tier: 1,
+      status: 'LOCKED' as const,
+      balance: '₦15,000.00',
+      kycVerified: false,
+      joinedDate: '01 Nov 2026',
+    },
+  ]);
 
   // Dynamic Island
   const [dynamicIsland, setDynamicIsland] = useState<DynamicIslandState>({
@@ -225,20 +394,290 @@ export const BankProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const showDynamicIsland = (
-    title: string,
+    titleOrPayload:
+      | string
+      | {
+          title: string;
+          subtitle?: string;
+          type?: DynamicIslandType;
+          amount?: string;
+          reference?: string;
+          expanded?: boolean;
+          progress?: number;
+          durationMs?: number;
+          primaryAction?: DynamicIslandAction;
+          secondaryAction?: DynamicIslandAction;
+        },
     subtitle?: string,
-    type: DynamicIslandState['type'] = 'success',
-    durationMs: number = 4000
+    type: DynamicIslandType = 'success',
+    durationMs: number = 4500
   ) => {
-    setDynamicIsland({ active: true, title, subtitle, type, expanded: true });
-    playHaptic('success');
+    let newState: DynamicIslandState;
+    let timer = durationMs;
+
+    if (typeof titleOrPayload === 'object') {
+      newState = {
+        active: true,
+        title: titleOrPayload.title,
+        subtitle: titleOrPayload.subtitle,
+        type: titleOrPayload.type || 'success',
+        amount: titleOrPayload.amount,
+        reference: titleOrPayload.reference,
+        expanded: titleOrPayload.expanded,
+        progress: titleOrPayload.progress,
+        primaryAction: titleOrPayload.primaryAction,
+        secondaryAction: titleOrPayload.secondaryAction,
+      };
+      if (titleOrPayload.durationMs) timer = titleOrPayload.durationMs;
+    } else {
+      newState = {
+        active: true,
+        title: titleOrPayload,
+        subtitle,
+        type,
+        expanded: false,
+      };
+    }
+
+    setDynamicIsland(newState);
+    playHaptic(newState.type === 'security' ? 'warning' : 'success');
+
     setTimeout(() => {
       setDynamicIsland((prev) => ({ ...prev, active: false }));
-    }, durationMs);
+    }, timer);
   };
 
   const dismissDynamicIsland = () => {
     setDynamicIsland((prev) => ({ ...prev, active: false }));
+  };
+
+  // Money Movement: Withdrawal (ATM Cardless or Bank Wire Cash Out)
+  const withdrawMoney = async ({
+    method,
+    amount,
+    currency,
+    bankName = 'GTBank',
+    accountNumber = '0123456789',
+    recipientName = 'Ruthie Adebayo',
+    description = '',
+  }: {
+    method: 'atm' | 'bank';
+    amount: number;
+    currency: CurrencyCode;
+    bankName?: string;
+    accountNumber?: string;
+    recipientName?: string;
+    description?: string;
+  }) => {
+    playHaptic('medium');
+
+    const wallet = wallets.find((w) => w.currency === currency);
+    if (!wallet || wallet.availableBalance < amount) {
+      showDynamicIsland({
+        title: 'Withdrawal Declined',
+        subtitle: 'Insufficient balance in selected wallet',
+        type: 'security',
+      });
+      return { success: false, error: 'Insufficient funds' };
+    }
+
+    const cashCode =
+      method === 'atm'
+        ? `${Math.floor(1000 + Math.random() * 9000)} ${Math.floor(1000 + Math.random() * 9000)}`
+        : undefined;
+
+    const newTx: TransactionRecord = {
+      id: `tx_wth_${Date.now()}`,
+      reference: `WTH-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(
+        1000 + Math.random() * 9000
+      )}`,
+      idempotencyKey: crypto.randomUUID(),
+      type: 'WITHDRAWAL',
+      title: method === 'atm' ? 'ATM Cardless Cash Out' : `Cash Out to ${bankName}`,
+      description:
+        description ||
+        (method === 'atm'
+          ? `One-Time ATM Cash Code: ${cashCode} (Valid 15 mins)`
+          : `Settlement to ${accountNumber}`),
+      recipientOrSender: method === 'atm' ? 'Self (Any Partner ATM)' : `${recipientName} (${bankName})`,
+      amount,
+      fee: 0,
+      currency,
+      timestamp: 'Just now',
+      status: 'SUCCEEDED',
+      category: 'transfer',
+      metadata: { method, cashCode, bankName, accountNumber },
+    };
+
+    setWallets((prev) =>
+      prev.map((w) =>
+        w.currency === currency
+          ? {
+              ...w,
+              balance: w.balance - amount,
+              availableBalance: w.availableBalance - amount,
+            }
+          : w
+      )
+    );
+
+    setTransactions((prev) => [newTx, ...prev]);
+    setActiveReceipt(newTx);
+
+    showDynamicIsland({
+      title: method === 'atm' ? 'ATM Cash Code Ready' : 'Cash Out Dispatched',
+      subtitle:
+        method === 'atm'
+          ? `Code ${cashCode} generated for ${wallet.symbol}${amount.toLocaleString()}`
+          : `${wallet.symbol}${amount.toLocaleString()} sent to ${bankName}`,
+      type: 'outgoing',
+      amount: `${wallet.symbol}${amount.toLocaleString()}`,
+      reference: newTx.reference,
+      expanded: true,
+      primaryAction: {
+        label: method === 'atm' ? 'View Code' : 'View Receipt',
+        action: () => setActiveReceipt(newTx),
+      },
+    });
+
+    return { success: true, cashCode, transaction: newTx };
+  };
+
+  // Support Ticket Actions
+  const createSupportTicket = ({
+    subject,
+    category,
+    priority,
+    message,
+  }: {
+    subject: string;
+    category: SupportTicketItem['category'];
+    priority: SupportTicketItem['priority'];
+    message: string;
+  }) => {
+    playHaptic('medium');
+    const newTicket: SupportTicketItem = {
+      id: `TICK-${Math.floor(1000 + Math.random() * 9000)}`,
+      subject,
+      category,
+      priority,
+      status: 'OPEN',
+      createdAt: 'Just now',
+      messages: [
+        {
+          id: `msg_${Date.now()}`,
+          sender: 'user',
+          senderName: `${user.firstName} ${user.lastName}`,
+          text: message,
+          timestamp: 'Just now',
+        },
+      ],
+    };
+
+    setSupportTickets((prev) => [newTicket, ...prev]);
+    showDynamicIsland({
+      title: 'Support Ticket Dispatched',
+      subtitle: `Ticket #${newTicket.id} assigned to Tier 3 Priority Desk`,
+      type: 'success',
+      reference: newTicket.id,
+    });
+
+    setTimeout(() => {
+      setSupportTickets((prev) =>
+        prev.map((t) =>
+          t.id === newTicket.id
+            ? {
+                ...t,
+                status: 'IN_REVIEW',
+                messages: [
+                  ...t.messages,
+                  {
+                    id: `msg_${Date.now()}`,
+                    sender: 'agent',
+                    senderName: 'Sola (Ruthie Priority Care)',
+                    text: `Hello ${user.firstName}, I have received your request regarding "${subject}". I am reviewing your account records now.`,
+                    timestamp: 'Just now',
+                  },
+                ],
+              }
+            : t
+        )
+      );
+    }, 1500);
+
+    return newTicket;
+  };
+
+  const sendTicketReply = (ticketId: string, text: string) => {
+    if (!text.trim()) return;
+    playHaptic('light');
+
+    setSupportTickets((prev) =>
+      prev.map((t) =>
+        t.id === ticketId
+          ? {
+              ...t,
+              messages: [
+                ...t.messages,
+                {
+                  id: `msg_u_${Date.now()}`,
+                  sender: 'user',
+                  senderName: `${user.firstName} ${user.lastName}`,
+                  text,
+                  timestamp: 'Just now',
+                },
+              ],
+            }
+          : t
+      )
+    );
+
+    setTimeout(() => {
+      setSupportTickets((prev) =>
+        prev.map((t) =>
+          t.id === ticketId
+            ? {
+                ...t,
+                messages: [
+                  ...t.messages,
+                  {
+                    id: `msg_a_${Date.now()}`,
+                    sender: 'agent',
+                    senderName: 'Sola (Ruthie Priority Care)',
+                    text: 'Thank you for the update. Our operations desk has noted this detail.',
+                    timestamp: 'Just now',
+                  },
+                ],
+              }
+            : t
+        )
+      );
+    }, 1200);
+  };
+
+  // Admin Actions
+  const adminUpdateUserStatus = (userId: string, status: 'ACTIVE' | 'LOCKED') => {
+    playHaptic('medium');
+    setAdminUsers((prev) =>
+      prev.map((u) => (u.id === userId ? { ...u, status } : u))
+    );
+    showDynamicIsland({
+      title: 'User Status Updated',
+      subtitle: `Account ${status === 'ACTIVE' ? 'activated' : 'locked'} by Admin`,
+      type: status === 'ACTIVE' ? 'success' : 'security',
+    });
+  };
+
+  const adminApproveKyc = (userId: string, tier: 1 | 2 | 3) => {
+    playHaptic('success');
+    setAdminUsers((prev) =>
+      prev.map((u) => (u.id === userId ? { ...u, tier, kycVerified: true } : u))
+    );
+    showDynamicIsland({
+      title: 'KYC Verified',
+      subtitle: `User upgraded to Tier ${tier}`,
+      type: 'success',
+    });
   };
 
   // Money Movement: Transfer
@@ -825,12 +1264,21 @@ export const BankProvider: React.FC<{ children: React.ReactNode }> = ({ children
         bookings: bookingCatalog,
         notifications,
         devices: userDevices,
+        billsActiveTab,
+        setBillsActiveTab,
+        supportTickets,
+        createSupportTicket,
+        sendTicketReply,
+        adminUsers,
+        adminUpdateUserStatus,
+        adminApproveKyc,
         dynamicIsland,
         showDynamicIsland,
         dismissDynamicIsland,
         activeReceipt,
         setActiveReceipt,
         transferMoney,
+        withdrawMoney,
         convertCurrency,
         payBillOrAirtime,
         createSavingsGoal,

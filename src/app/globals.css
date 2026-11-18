@@ -59,8 +59,54 @@ body {
   overflow: hidden;
 }
 
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .liquid-glass {
+    background: rgba(248, 250, 252, 0.96);
+  }
+
+  .dark .liquid-glass {
+    background: rgba(6, 18, 30, 0.97);
+  }
+}
+
 .dark .liquid-glass {
   box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45), inset 0 1px 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.ruthie-island-shell {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: linear-gradient(155deg, rgba(17, 24, 31, 0.97), rgba(2, 8, 14, 0.96) 65%, rgba(4, 18, 24, 0.98));
+  border: 1px solid rgba(226, 255, 246, 0.22);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.48), 0 0 26px rgba(16, 185, 129, 0.12), inset 0 1px rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(28px) saturate(145%);
+  -webkit-backdrop-filter: blur(28px) saturate(145%);
+  animation: island-enter 360ms cubic-bezier(0.2, 0.9, 0.25, 1.15) both;
+}
+
+.ruthie-island-shell::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(115deg, rgba(255,255,255,.13), transparent 32%, transparent 70%, rgba(16,185,129,.08));
+}
+
+.ruthie-island-indicator {
+  animation: island-breathe 2.4s ease-in-out infinite;
+  box-shadow: 0 0 14px rgba(52, 211, 153, .8);
+}
+
+@keyframes island-enter {
+  from { opacity: 0; transform: translateY(-8px) scale(.94); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes island-breathe {
+  50% { opacity: .55; box-shadow: 0 0 5px rgba(52, 211, 153, .35); }
 }
 
 /* Glass Specular Reflection Highlight */
@@ -97,6 +143,15 @@ body {
   background: radial-gradient(circle at 50% -10%, rgba(16, 185, 129, 0.22) 0%, transparent 55%),
               radial-gradient(circle at 100% 30%, rgba(6, 18, 30, 0.8) 0%, transparent 60%),
               radial-gradient(circle at 0% 70%, rgba(4, 120, 87, 0.15) 0%, transparent 50%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* Holographic Card Shimmer */

@@ -68,14 +68,14 @@ export const GlassPinKeypad: React.FC<GlassPinKeypadProps> = ({
         ))}
 
         {/* Bottom row: Biometric / 0 / Delete */}
-        {showBiometric ? (
+        {showBiometric && onBiometric ? (
           <button
             type="button"
             onClick={() => {
               playHaptic('success');
-              if (onBiometric) onBiometric();
+              onBiometric();
             }}
-            title="Authenticate with Face ID"
+            title="Authenticate with Biometrics / Passkey"
             className="w-16 h-16 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 active:scale-90 transition-all select-none cursor-pointer"
           >
             <ScanFace size={24} />

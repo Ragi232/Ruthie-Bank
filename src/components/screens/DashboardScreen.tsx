@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useBank } from '@/context/BankContext';
 import { GlassBalanceCard } from '@/components/glass/GlassBalanceCard';
 import { GlassTransactionItem } from '@/components/glass/GlassTransactionItem';
@@ -34,12 +34,26 @@ export const DashboardScreen: React.FC = () => {
     savingsGoals,
     userInvestments,
     setCurrentScreen,
+    setBillsActiveTab,
     notifications,
     showDynamicIsland,
     playHaptic,
   } = useBank();
 
   const [notificationOpen, setNotificationOpen] = useState(false);
+  const [localNow, setLocalNow] = useState<Date | null>(null);
+  useEffect(() => {
+    const updateLocalTime = () => setLocalNow(new Date());
+    updateLocalTime();
+    const timer = window.setInterval(updateLocalTime, 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
+  const greeting = localNow
+    ? localNow.getHours() < 12 ? 'Good morning' : localNow.getHours() < 17 ? 'Good afternoon' : 'Good evening'
+    : 'Welcome';
+  const formattedDate = localNow
+    ? new Intl.DateTimeFormat(undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(localNow)
+    : '';
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   // 10 Quick Actions per specification
@@ -49,7 +63,12 @@ export const DashboardScreen: React.FC = () => {
       icon: Plus,
       color: 'text-emerald-500 bg-emerald-500/10 dark:bg-emerald-500/20',
       action: () => {
-        showDynamicIsland('Add Money', `Fund your account via transfer to ${user.accountNumber}`, 'success');
+        showDynamicIsland({
+          title: 'Direct Bank Wire Deposit',
+          subtitle: `Send local NGN to ${user.accountNumber} (Ruthie Bank)`,
+          type: 'incoming',
+          amount: 'Instant Credit',
+        });
       },
     },
     {
@@ -62,27 +81,34 @@ export const DashboardScreen: React.FC = () => {
       label: 'Withdraw',
       icon: ArrowDownLeft,
       color: 'text-blue-500 bg-blue-500/10 dark:bg-blue-500/20',
-      action: () => {
-        showDynamicIsland('ATM / Cash Out', 'Scan Ruthie QR code at any partner ATM', 'success');
-      },
+      action: () => setCurrentScreen('withdrawals'),
     },
     {
       label: 'Airtime',
       icon: Smartphone,
       color: 'text-amber-500 bg-amber-500/10 dark:bg-amber-500/20',
-      action: () => setCurrentScreen('bills'),
+      action: () => {
+        setBillsActiveTab('airtime');
+        setCurrentScreen('bills');
+      },
     },
     {
       label: 'Data Bundle',
       icon: Wifi,
       color: 'text-yellow-500 bg-yellow-500/10 dark:bg-yellow-500/20',
-      action: () => setCurrentScreen('bills'),
+      action: () => {
+        setBillsActiveTab('data');
+        setCurrentScreen('bills');
+      },
     },
     {
       label: 'Pay Bills',
       icon: Zap,
       color: 'text-orange-500 bg-orange-500/10 dark:bg-orange-500/20',
-      action: () => setCurrentScreen('bills'),
+      action: () => {
+        setBillsActiveTab('electricity');
+        setCurrentScreen('bills');
+      },
     },
     {
       label: 'Savings',
@@ -112,9 +138,7 @@ export const DashboardScreen: React.FC = () => {
 
   // Calculate live portfolio summary
   const totalSaved = savingsGoals.reduce((acc, g) => acc + g.currentAmount, 0);
-  const totalInvestedNGN = userInvestments.reduce((acc, inv) => {
-    return acc + (inv.currency === 'NGN' ? inv.currentValue : inv.currentValue * 1540.5);
-  }, 0);
+  const totalInvestedNGN = userInvestments.reduce((acc, inv) => acc + (inv.currency === 'NGN' ? inv.currentValue : 0), 0);
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6 pb-24 md:pb-12">
@@ -132,10 +156,10 @@ export const DashboardScreen: React.FC = () => {
           </button>
           <div>
             <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
-              Tuesday, 18 November 2026
+              {formattedDate}
             </p>
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5">
-              <span>Good morning, {user.firstName}</span>
+              <span>{greeting}, {user.firstName}</span>
               <span className="text-emerald-500 text-base">✦</span>
             </h1>
           </div>
@@ -146,10 +170,11 @@ export const DashboardScreen: React.FC = () => {
           <button
             onClick={() => {
               playHaptic('light');
-              showDynamicIsland('Priority Support', 'Ruthie Concierge 24/7 is standing by', 'success');
+              setCurrentScreen('support');
             }}
             aria-label="Ruthie Help and Concierge"
             className="hidden sm:flex items-center justify-center p-2 rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+            title="Concierge & Support"
           >
             <CircleHelp size={19} />
           </button>
@@ -157,15 +182,27 @@ export const DashboardScreen: React.FC = () => {
           <button
             onClick={() => {
               playHaptic('light');
-              setNotificationOpen(true);
+              setCurrentScreen('notifications');
             }}
             aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ''}`}
             className="relative flex items-center justify-center p-2 rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+            title="Notifications Center"
           >
             <Bell size={19} />
             {unreadCount > 0 && (
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" />
             )}
+          </button>
+
+          <button
+            onClick={() => {
+              playHaptic('light');
+              setCurrentScreen('admin');
+            }}
+            className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900/10 dark:bg-white/10 hover:bg-emerald-500/20 border border-slate-300 dark:border-white/15 text-[11px] font-bold text-slate-800 dark:text-white transition-all cursor-pointer"
+            title="Open Admin Management Console"
+          >
+            <span>Admin Console</span>
           </button>
 
           <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
@@ -174,6 +211,18 @@ export const DashboardScreen: React.FC = () => {
           </div>
         </div>
       </header>
+
+      {/* Sandbox Environment Status Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-4 py-2.5 rounded-2xl bg-amber-500/[0.08] dark:bg-amber-500/[0.12] border border-amber-500/25 text-xs text-amber-800 dark:text-amber-200">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+          <span className="font-semibold">Development Sandbox Preview</span>
+          <span className="text-[11px] text-amber-700/80 dark:text-amber-300/80">· Live commercial banking rails not connected</span>
+        </div>
+        <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-amber-500/20 w-fit">
+          NON-SETTLED ENVIRONMENT
+        </span>
+      </div>
 
       {/* Hero Balance Card & Ruthie AI Assistant Banner Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -191,16 +240,16 @@ export const DashboardScreen: React.FC = () => {
                 <Sparkles size={16} className="text-emerald-300 animate-spin" />
                 Ruthie AI Companion
               </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-400/30">
-                ACTIVE
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-200 font-semibold border border-amber-400/30">
+                DEMO
               </span>
             </div>
 
             <h3 className="text-base font-bold text-white mb-2 leading-snug">
-              &quot;You have ₦150,000 surplus liquidity this month. Sweep to Vault for 18.5% APY?&quot;
+              Explore spending patterns and savings ideas with Ruthie AI.
             </h3>
             <p className="text-xs text-slate-300 leading-relaxed">
-              Your discretionary spending is down 11%. Compounding this surplus earns ₦27,750 extra passive yield.
+              Preview only. Financial insights use sample data and are not personalized recommendations.
             </p>
           </div>
 
@@ -260,7 +309,7 @@ export const DashboardScreen: React.FC = () => {
           <div className="flex items-center gap-2">
             <ArrowLeftRight size={15} className="text-emerald-500" />
             <h2 id="fx-ticker-heading" className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-              Live Exchange Rates (Institutional Mid-Market)
+              Currency Conversion
             </h2>
           </div>
           <button
@@ -273,10 +322,10 @@ export const DashboardScreen: React.FC = () => {
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
-            { pair: 'USD / NGN', rate: '₦1,540.50', change: '+0.8%', flag: '🇺🇸' },
-            { pair: 'GBP / NGN', rate: '₦1,985.20', change: '+0.4%', flag: '🇬🇧' },
-            { pair: 'EUR / NGN', rate: '₦1,675.80', change: '-0.2%', flag: '🇪🇺' },
-            { pair: 'CAD / NGN', rate: '₦1,120.40', change: '+0.5%', flag: '🇨🇦' },
+            { pair: 'USD / NGN', flag: '🇺🇸' },
+            { pair: 'GBP / NGN', flag: '🇬🇧' },
+            { pair: 'EUR / NGN', flag: '🇪🇺' },
+            { pair: 'CAD / NGN', flag: '🇨🇦' },
           ].map((r) => (
             <div
               key={r.pair}
@@ -288,20 +337,12 @@ export const DashboardScreen: React.FC = () => {
                   <p className="text-[11px] font-bold text-slate-900 dark:text-white leading-tight">
                     {r.pair}
                   </p>
-                  <p className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 leading-tight">
-                    {r.rate}
+                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400 leading-tight">
+                    Quote unavailable
                   </p>
                 </div>
               </div>
-              <span
-                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                  r.change.startsWith('+')
-                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                    : 'bg-rose-500/10 text-rose-500'
-                }`}
-              >
-                {r.change}
-              </span>
+              <span className="text-[9px] text-amber-600 dark:text-amber-300">Sandbox</span>
             </div>
           ))}
         </div>
@@ -351,7 +392,7 @@ export const DashboardScreen: React.FC = () => {
                 </h2>
               </div>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
-                18.5% APY
+                DEMO APY
               </span>
             </div>
 
@@ -365,7 +406,7 @@ export const DashboardScreen: React.FC = () => {
                   ₦{totalSaved.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                 </p>
                 <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">
-                  +₦50,128.40 interest accrued
+                  Simulated sample balance · no interest credited
                 </p>
               </div>
             </div>
@@ -388,7 +429,7 @@ export const DashboardScreen: React.FC = () => {
                 </h2>
               </div>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-600 dark:text-blue-400">
-                +14.8% YTD
+                DEMO
               </span>
             </div>
 
@@ -400,7 +441,7 @@ export const DashboardScreen: React.FC = () => {
                 ₦{totalInvestedNGN.toLocaleString('en-US', { maximumFractionDigits: 0 })}
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Includes FRN Eurobond ($2,746.25) & Sovereign Treasury Fund
+                Sample portfolio only · returns are not actual
               </p>
             </div>
 

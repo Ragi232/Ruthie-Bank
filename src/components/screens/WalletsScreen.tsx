@@ -14,6 +14,8 @@ import {
   CheckCircle2,
   Lock,
   Globe2,
+  Info,
+  AlertCircle,
 } from 'lucide-react';
 
 export const WalletsScreen: React.FC = () => {
@@ -56,6 +58,23 @@ export const WalletsScreen: React.FC = () => {
     setToCurr(temp);
   };
 
+  const handleStartReviewSwap = () => {
+    if (numFrom <= 0) {
+      showDynamicIsland('Invalid Amount', 'Enter an amount greater than 0', 'security');
+      return;
+    }
+    if (numFrom > fromWallet.availableBalance) {
+      showDynamicIsland(
+        'Insufficient Balance',
+        `Available: ${fromWallet.symbol}${fromWallet.availableBalance.toLocaleString()}`,
+        'security'
+      );
+      return;
+    }
+    playHaptic('medium');
+    setConvertModalOpen(true);
+  };
+
   const handleExecuteConvert = async () => {
     if (numFrom <= 0) return;
     setIsSwapping(true);
@@ -70,9 +89,7 @@ export const WalletsScreen: React.FC = () => {
     });
 
     setIsSwapping(false);
-    if (res.success) {
-      setConvertModalOpen(false);
-    }
+    setConvertModalOpen(false);
   };
 
   return (
@@ -107,12 +124,25 @@ export const WalletsScreen: React.FC = () => {
             variant="primary"
             onClick={() => {
               playHaptic('medium');
-              setConvertModalOpen(true);
+              handleStartReviewSwap();
             }}
             icon={<ArrowLeftRight size={16} />}
           >
             Convert Now
           </GlassButton>
+        </div>
+      </div>
+
+      {/* Sandbox Transparency Notice */}
+      <div className="flex items-start gap-3 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-900 dark:text-amber-200">
+        <Info size={18} className="text-amber-500 shrink-0 mt-0.5" />
+        <div className="space-y-0.5">
+          <p className="font-semibold text-amber-950 dark:text-amber-100">
+            Development Sandbox — Indicative Interbank FX Rates
+          </p>
+          <p className="opacity-90 leading-relaxed text-[11px]">
+            Currency swaps and foreign accounts are simulated against our sandbox treasury ledger. Wholesale FX liquidity rails (Bloomberg FXGO, LMAX Exchange) are operating in preview mode without real reserve movement.
+          </p>
         </div>
       </div>
 
@@ -254,11 +284,11 @@ export const WalletsScreen: React.FC = () => {
           <GlassButton
             variant="primary"
             size="lg"
-            onClick={handleExecuteConvert}
+            onClick={handleStartReviewSwap}
             loading={isSwapping}
             className="w-full"
           >
-            Swap {fromCurr} for {toCurr}
+            Review & Swap {fromCurr} for {toCurr}
           </GlassButton>
         </div>
 
@@ -347,6 +377,93 @@ export const WalletsScreen: React.FC = () => {
           </GlassButton>
         </div>
       </div>
+
+      {/* FX Swap Review & Confirmation Modal */}
+      <GlassModal
+        isOpen={convertModalOpen}
+        onClose={() => !isSwapping && setConvertModalOpen(false)}
+        title="Review Currency Swap"
+        subtitle="Institutional mid-market exchange quotation"
+        maxWidth="md"
+      >
+        <div className="space-y-5 pt-1">
+          {/* Visual Pair Summary */}
+          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/10 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[11px] text-slate-500 uppercase font-bold tracking-wider">You Debiting</p>
+                <p className="text-xl font-bold font-mono text-slate-900 dark:text-white mt-0.5">
+                  {fromWallet.symbol}{numFrom.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+                <p className="text-xs text-slate-400 font-medium">{fromWallet.name} ({fromCurr})</p>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                <ArrowLeftRight size={20} />
+              </div>
+              <div className="text-right">
+                <p className="text-[11px] text-slate-500 uppercase font-bold tracking-wider">You Credited</p>
+                <p className="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-0.5">
+                  {toWallet.symbol}{calculatedToAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+                <p className="text-xs text-slate-400 font-medium">{toWallet.name} ({toCurr})</p>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-200/60 dark:border-white/10 grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <span className="text-slate-400 text-[11px]">Exchange Rate:</span>
+                <p className="font-mono font-semibold text-slate-800 dark:text-slate-200">
+                  1 {fromCurr} = {rate < 1 ? rate.toFixed(6) : rate.toFixed(2)} {toCurr}
+                </p>
+              </div>
+              <div>
+                <span className="text-slate-400 text-[11px]">Settlement:</span>
+                <p className="font-semibold text-slate-800 dark:text-slate-200">
+                  Instant Rebalance
+                </p>
+              </div>
+              <div>
+                <span className="text-slate-400 text-[11px]">Spread Fee:</span>
+                <p className="font-semibold text-emerald-500">
+                  ₦0.00 (Zero Fee)
+                </p>
+              </div>
+              <div>
+                <span className="text-slate-400 text-[11px]">Quote Guarantee:</span>
+                <p className="font-semibold text-slate-800 dark:text-slate-200">
+                  Locked for 60s
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Sandbox Warning */}
+          <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-800 dark:text-amber-300">
+            <AlertCircle size={15} className="text-amber-500 shrink-0 mt-0.5" />
+            <p>
+              Sandbox Preview: This transaction updates your simulated wallet balances in real-time. Live banking liquidity providers are not debited.
+            </p>
+          </div>
+
+          {/* Actions */}
+          <div className="grid grid-cols-2 gap-3 pt-2">
+            <GlassButton
+              variant="glass"
+              onClick={() => setConvertModalOpen(false)}
+              disabled={isSwapping}
+            >
+              Cancel
+            </GlassButton>
+            <GlassButton
+              variant="primary"
+              onClick={handleExecuteConvert}
+              loading={isSwapping}
+            >
+              Confirm Swap
+            </GlassButton>
+          </div>
+        </div>
+      </GlassModal>
 
       {/* Add Currency Modal */}
       <GlassModal
