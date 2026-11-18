@@ -1,0 +1,394 @@
+"use client";
+
+import React, { useState } from 'react';
+import { useBank } from '@/context/BankContext';
+import { GlassCurrencyCard } from '@/components/glass/GlassCurrencyCard';
+import { GlassButton } from '@/components/glass/GlassButton';
+import { GlassModal } from '@/components/glass/GlassModal';
+import { GlassInput } from '@/components/glass/GlassInput';
+import { CurrencyCode, WalletBalance } from '@/types';
+import {
+  ArrowLeftRight,
+  Plus,
+  ShieldCheck,
+  CheckCircle2,
+  Lock,
+  Globe2,
+} from 'lucide-react';
+
+export const WalletsScreen: React.FC = () => {
+  const {
+    wallets,
+    selectedCurrency,
+    setSelectedCurrency,
+    convertCurrency,
+    playHaptic,
+    showDynamicIsland,
+  } = useBank();
+
+  const [fromCurr, setFromCurr] = useState<CurrencyCode>('USD');
+  const [toCurr, setToCurr] = useState<CurrencyCode>('NGN');
+  const [fromAmount, setFromAmount] = useState<string>('500');
+  const [convertModalOpen, setConvertModalOpen] = useState(false);
+  const [addWalletModalOpen, setAddWalletModalOpen] = useState(false);
+  const [selectedWalletDetails, setSelectedWalletDetails] = useState<WalletBalance | null>(null);
+  const [isSwapping, setIsSwapping] = useState(false);
+
+  const activeWallet = wallets.find((w) => w.currency === selectedCurrency) || wallets[0];
+  const fromWallet = wallets.find((w) => w.currency === fromCurr) || wallets[0];
+  const toWallet = wallets.find((w) => w.currency === toCurr) || wallets[1];
+
+  // Calculate rate
+  const rate =
+    fromCurr === 'NGN'
+      ? 1 / toWallet.rateToNgn
+      : toCurr === 'NGN'
+      ? fromWallet.rateToNgn
+      : fromWallet.rateToNgn / toWallet.rateToNgn;
+
+  const numFrom = parseFloat(fromAmount) || 0;
+  const calculatedToAmount = numFrom * rate;
+
+  const handleSwapCurrencies = () => {
+    playHaptic('light');
+    const temp = fromCurr;
+    setFromCurr(toCurr);
+    setToCurr(temp);
+  };
+
+  const handleExecuteConvert = async () => {
+    if (numFrom <= 0) return;
+    setIsSwapping(true);
+    playHaptic('medium');
+
+    const res = await convertCurrency({
+      fromCurrency: fromCurr,
+      toCurrency: toCurr,
+      fromAmount: numFrom,
+      toAmount: calculatedToAmount,
+      rate,
+    });
+
+    setIsSwapping(false);
+    if (res.success) {
+      setConvertModalOpen(false);
+    }
+  };
+
+  return (
+    <div className="w-full max-w-7xl mx-auto space-y-8 pb-24 md:pb-12">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-white/10 pb-4">
+        <div>
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-1">
+            <Globe2 size={16} />
+            <span>Multi-Currency Core</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            Global Wallets & FX
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+            Hold, receive, and swap foreign currencies at institutional interbank rates
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <GlassButton
+            variant="glass"
+            onClick={() => {
+              playHaptic('light');
+              setAddWalletModalOpen(true);
+            }}
+            icon={<Plus size={16} />}
+          >
+            Add Currency
+          </GlassButton>
+          <GlassButton
+            variant="primary"
+            onClick={() => {
+              playHaptic('medium');
+              setConvertModalOpen(true);
+            }}
+            icon={<ArrowLeftRight size={16} />}
+          >
+            Convert Now
+          </GlassButton>
+        </div>
+      </div>
+
+      {/* Grid of Multi-Currency Cards */}
+      <div className="space-y-4">
+        <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+          Your Currency Balances
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {wallets.map((wallet) => (
+            <GlassCurrencyCard
+              key={wallet.currency}
+              wallet={wallet}
+              selected={selectedCurrency === wallet.currency}
+              onSelect={() => {
+                playHaptic('light');
+                setSelectedCurrency(wallet.currency);
+                setSelectedWalletDetails(wallet);
+              }}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Main Split: Conversion Desk & Bank Requisites */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Instant Currency Swap Desk (2 cols) */}
+        <div className="lg:col-span-2 rounded-[32px] p-6 sm:p-8 bg-white/75 dark:bg-[#071726]/80 backdrop-blur-3xl border border-slate-200/90 dark:border-white/15 shadow-[0_16px_40px_rgba(0,0,0,0.06)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                Institutional FX Swap Desk
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                0.00% Spread · Instant Settlement · Guaranteed Quote
+              </p>
+            </div>
+            <div className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+              <ShieldCheck size={14} />
+              <span>Real-Time Rate</span>
+            </div>
+          </div>
+
+          {/* Swap Inputs */}
+          <div className="space-y-3">
+            {/* From Input */}
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/10 space-y-2">
+              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                <span>You Send</span>
+                <span>
+                  Available: {fromWallet.symbol}
+                  {fromWallet.availableBalance.toLocaleString()}
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <input
+                  type="number"
+                  value={fromAmount}
+                  onChange={(e) => setFromAmount(e.target.value)}
+                  className="w-full bg-transparent text-2xl sm:text-3xl font-bold font-mono text-slate-900 dark:text-white outline-none"
+                  placeholder="0.00"
+                />
+                <select
+                  value={fromCurr}
+                  onChange={(e) => setFromCurr(e.target.value as CurrencyCode)}
+                  aria-label="Source Currency"
+                  className="px-3 py-2 rounded-xl bg-white dark:bg-[#0c243b] text-slate-900 dark:text-white font-bold text-sm border border-slate-200 dark:border-white/15 outline-none cursor-pointer"
+                >
+                  {wallets.map((w) => (
+                    <option key={w.currency} value={w.currency}>
+                      {w.flag} {w.currency}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Invert Swap Button */}
+            <div className="flex justify-center -my-2 relative z-10">
+              <button
+                type="button"
+                onClick={handleSwapCurrencies}
+                aria-label="Invert Currencies"
+                className="w-10 h-10 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 flex items-center justify-center shadow-md active:scale-90 transition-transform cursor-pointer"
+              >
+                <ArrowLeftRight size={18} />
+              </button>
+            </div>
+
+            {/* To Input */}
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/10 space-y-2">
+              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                <span>You Receive (Estimated)</span>
+                <span>Institutional Mid-Market</span>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <p className="w-full text-2xl sm:text-3xl font-bold font-mono text-emerald-600 dark:text-emerald-400 truncate">
+                  {calculatedToAmount.toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </p>
+                <select
+                  value={toCurr}
+                  onChange={(e) => setToCurr(e.target.value as CurrencyCode)}
+                  aria-label="Destination Currency"
+                  className="px-3 py-2 rounded-xl bg-white dark:bg-[#0c243b] text-slate-900 dark:text-white font-bold text-sm border border-slate-200 dark:border-white/15 outline-none cursor-pointer"
+                >
+                  {wallets.map((w) => (
+                    <option key={w.currency} value={w.currency}>
+                      {w.flag} {w.currency}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Rate Diagnostic Details */}
+          <div className="p-3.5 rounded-2xl bg-emerald-500/[0.07] dark:bg-emerald-500/[0.1] border border-emerald-500/20 text-xs space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500 dark:text-slate-400">Exchange Rate</span>
+              <span className="font-mono font-bold text-slate-900 dark:text-white">
+                1 {fromCurr} = {rate < 1 ? rate.toFixed(6) : rate.toLocaleString('en-US', { maximumFractionDigits: 2 })} {toCurr}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500 dark:text-slate-400">Conversion Fee</span>
+              <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                ₦0.00 (Zero Spread)
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500 dark:text-slate-400">Settlement Speed</span>
+              <span className="font-semibold text-slate-900 dark:text-white">Instant (0 seconds)</span>
+            </div>
+          </div>
+
+          <GlassButton
+            variant="primary"
+            size="lg"
+            onClick={handleExecuteConvert}
+            loading={isSwapping}
+            className="w-full"
+          >
+            Swap {fromCurr} for {toCurr}
+          </GlassButton>
+        </div>
+
+        {/* Selected Wallet Requisites & Wire Info (1 col) */}
+        <div className="rounded-[32px] p-6 sm:p-8 bg-white/75 dark:bg-[#071726]/80 backdrop-blur-3xl border border-slate-200/90 dark:border-white/15 shadow-sm space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-bold text-slate-900 dark:text-white">
+              {activeWallet.currency} Deposit Details
+            </h2>
+            <span className="text-xl select-none">{activeWallet.flag}</span>
+          </div>
+
+          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+            Use these dedicated banking details to receive local and international wire transfers directly into your Ruthie {activeWallet.name} wallet.
+          </p>
+
+          <div className="space-y-3 text-xs">
+            {activeWallet.accountNumber && (
+              <div className="p-3 rounded-2xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/10">
+                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
+                  Account Number
+                </span>
+                <p className="text-sm font-bold font-mono text-slate-900 dark:text-white mt-0.5">
+                  {activeWallet.accountNumber}
+                </p>
+              </div>
+            )}
+
+            {activeWallet.iban && (
+              <div className="p-3 rounded-2xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/10">
+                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
+                  IBAN
+                </span>
+                <p className="text-sm font-bold font-mono text-slate-900 dark:text-white mt-0.5">
+                  {activeWallet.iban}
+                </p>
+              </div>
+            )}
+
+            {activeWallet.routingNo && (
+              <div className="p-3 rounded-2xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/10">
+                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
+                  ACH / Routing Number
+                </span>
+                <p className="text-sm font-bold font-mono text-slate-900 dark:text-white mt-0.5">
+                  {activeWallet.routingNo}
+                </p>
+              </div>
+            )}
+
+            {activeWallet.sortCode && (
+              <div className="p-3 rounded-2xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/10">
+                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
+                  Sort Code
+                </span>
+                <p className="text-sm font-bold font-mono text-slate-900 dark:text-white mt-0.5">
+                  {activeWallet.sortCode}
+                </p>
+              </div>
+            )}
+
+            {activeWallet.bicSwift && (
+              <div className="p-3 rounded-2xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/10">
+                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
+                  SWIFT / BIC
+                </span>
+                <p className="text-sm font-bold font-mono text-slate-900 dark:text-white mt-0.5">
+                  {activeWallet.bicSwift}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <GlassButton
+            variant="glass"
+            onClick={() => {
+              playHaptic('success');
+              navigator.clipboard.writeText(
+                `${activeWallet.currency} Requisites:\nAccount: ${activeWallet.accountNumber || activeWallet.iban}\nBank: Ruthie Bank International`
+              );
+              showDynamicIsland('Details Copied', `${activeWallet.currency} wire instructions copied`, 'success');
+            }}
+            className="w-full"
+          >
+            Copy All Requisites
+          </GlassButton>
+        </div>
+      </div>
+
+      {/* Add Currency Modal */}
+      <GlassModal
+        isOpen={addWalletModalOpen}
+        onClose={() => setAddWalletModalOpen(false)}
+        title="Add Currency Wallet"
+        subtitle="Open new sovereign and international multi-currency accounts"
+        maxWidth="md"
+      >
+        <div className="space-y-4 pt-2">
+          <p className="text-xs text-slate-600 dark:text-slate-300">
+            Select an additional currency to activate an instant IBAN, routing code, or local clearing account number.
+          </p>
+
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { code: 'AED', name: 'UAE Dirham', flag: '🇦🇪' },
+              { code: 'ZAR', name: 'South African Rand', flag: '🇿🇦' },
+              { code: 'XAF', name: 'Central African CFA', flag: '🇨🇲' },
+              { code: 'SGD', name: 'Singapore Dollar', flag: '🇸🇬' },
+            ].map((c) => (
+              <button
+                key={c.code}
+                onClick={() => {
+                  playHaptic('medium');
+                  setAddWalletModalOpen(false);
+                  showDynamicIsland('Wallet Activated', `${c.name} (${c.code}) wallet is ready`, 'success');
+                }}
+                className="flex items-center gap-3 p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.05] border border-slate-200/80 dark:border-white/10 hover:border-emerald-500/50 text-left transition-all cursor-pointer group"
+              >
+                <span className="text-2xl">{c.flag}</span>
+                <div>
+                  <p className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-emerald-500">
+                    {c.code}
+                  </p>
+                  <p className="text-[11px] text-slate-400">{c.name}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </GlassModal>
+    </div>
+  );
+};

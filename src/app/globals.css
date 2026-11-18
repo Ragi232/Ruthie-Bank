@@ -1,0 +1,159 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --background: #f8fafc;
+    --foreground: #091a2b;
+    --card: rgba(255, 255, 255, 0.78);
+    --card-border: rgba(226, 232, 240, 0.8);
+    --card-highlight: rgba(255, 255, 255, 0.9);
+    --navy: #06121e;
+    --emerald: #059669;
+    --emerald-glow: rgba(16, 185, 129, 0.25);
+    --gold: #d4af37;
+    --glass-blur: blur(24px);
+    --surface-glass: rgba(255, 255, 255, 0.72);
+  }
+
+  .dark {
+    --background: #03080e;
+    --foreground: #f8fafc;
+    --card: rgba(9, 26, 43, 0.65);
+    --card-border: rgba(255, 255, 255, 0.1);
+    --card-highlight: rgba(255, 255, 255, 0.15);
+    --navy: #06121e;
+    --emerald: #10b981;
+    --emerald-glow: rgba(16, 185, 129, 0.35);
+    --gold: #f59e0b;
+    --glass-blur: blur(28px);
+    --surface-glass: rgba(9, 26, 43, 0.7);
+  }
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
+  background-color: var(--background);
+  color: var(--foreground);
+  overflow-x: hidden;
+  transition: background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Apple Liquid Glass Surface */
+.liquid-glass {
+  background: var(--surface-glass);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.08), inset 0 1px 1px 0 var(--card-highlight);
+  position: relative;
+  overflow: hidden;
+}
+
+.dark .liquid-glass {
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45), inset 0 1px 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+/* Glass Specular Reflection Highlight */
+.liquid-glass::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.04) 40%,
+    rgba(255, 255, 255, 0.12) 50%,
+    transparent 60%
+  );
+  pointer-events: none;
+  transition: transform 0.6s ease;
+}
+
+.liquid-glass:hover::before {
+  transform: translateX(35%);
+}
+
+/* Ambient Radial Glows */
+.bg-ambient-glow {
+  background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.15) 0%, transparent 60%),
+              radial-gradient(circle at 100% 40%, rgba(6, 78, 59, 0.18) 0%, transparent 50%),
+              radial-gradient(circle at 0% 80%, rgba(13, 34, 54, 0.25) 0%, transparent 60%);
+}
+
+.dark .bg-ambient-glow {
+  background: radial-gradient(circle at 50% -10%, rgba(16, 185, 129, 0.22) 0%, transparent 55%),
+              radial-gradient(circle at 100% 30%, rgba(6, 18, 30, 0.8) 0%, transparent 60%),
+              radial-gradient(circle at 0% 70%, rgba(4, 120, 87, 0.15) 0%, transparent 50%);
+}
+
+/* Holographic Card Shimmer */
+@keyframes holo-shimmer {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.holo-gradient {
+  background: linear-gradient(
+    135deg,
+    #064e3b 0%,
+    #09263a 25%,
+    #059669 50%,
+    #0e2233 75%,
+    #064e3b 100%
+  );
+  background-size: 300% 300%;
+  animation: holo-shimmer 12s ease infinite;
+}
+
+/* Pulse Glow Animation */
+@keyframes pulse-emerald {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+.animate-pulse-glow {
+  animation: pulse-emerald 3.5s ease-in-out infinite;
+}
+
+/* iOS Touch Target & Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}
+
+/* Tactile Button Press */
+button, a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.97);
+  transition: transform 0.1s cubic-bezier(0.16, 1, 0.3, 1);
+}

@@ -1,0 +1,273 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Currency {
+  NGN
+  USD
+  GBP
+  EUR
+  CAD
+  GHS
+  KES
+  ZAR
+  AED
+  XAF
+}
+
+enum AccountStatus {
+  PENDING
+  ACTIVE
+  FROZEN
+  CLOSED
+}
+
+enum TransactionStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  REVERSED
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  TRANSFER
+  FX_CONVERSION
+  PAYMENT
+  FEE
+}
+
+enum LedgerSide {
+  DEBIT
+  CREDIT
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  COMPLIANCE_OFFICER
+  FINANCE_OFFICER
+  SUPPORT_AGENT
+}
+
+enum UserStatus {
+  PENDING_VERIFICATION
+  ACTIVE
+  LOCKED
+  CLOSED
+}
+
+enum OtpPurpose {
+  VERIFY_EMAIL
+  RESET_PASSWORD
+  LOGIN_STEP_UP
+}
+
+enum AuthenticationFactorType {
+  TRANSACTION_PIN
+  TOTP
+  WEBAUTHN
+}
+
+model User {
+  id              String         @id @default(cuid())
+  email           String         @unique
+  phone           String?        @unique
+  passwordHash    String
+  firstName       String
+  lastName        String
+  status          UserStatus     @default(PENDING_VERIFICATION)
+  emailVerifiedAt DateTime?
+  phoneVerifiedAt DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  accounts        Account[]
+  devices         Device[]
+  auditEvents     AuditLog[]
+  supportTickets  SupportTicket[]
+  sessions        AuthSession[]
+  otpChallenges   OtpChallenge[]
+  authFactors     AuthenticationFactor[]
+}
+
+model AuthSession {
+  id         String    @id @default(cuid())
+  userId     String
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  ipHash     String?
+  userAgent  String?
+  createdAt  DateTime  @default(now())
+  lastSeenAt DateTime  @default(now())
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+}
+
+model OtpChallenge {
+  id         String     @id @default(cuid())
+  userId     String
+  purpose    OtpPurpose
+  codeHash   String
+  expiresAt  DateTime
+  attempts   Int        @default(0)
+  consumedAt DateTime?
+  createdAt  DateTime   @default(now())
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, purpose, createdAt])
+  @@index([expiresAt])
+}
+
+model AuthenticationFactor {
+  id               String                    @id @default(cuid())
+  userId           String
+  type             AuthenticationFactorType
+  label            String?
+  credentialId     String?                   @unique
+  publicKey        String?                   @db.Text
+  encryptedSecret  String?                   @db.Text
+  secretKeyVersion String?
+  pinHash          String?
+  createdAt        DateTime                  @default(now())
+  lastUsedAt       DateTime?
+  disabledAt       DateTime?
+  user             User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type, disabledAt])
+}
+
+model AuthRateLimit {
+  id             String   @id @default(cuid())
+  identifierHash String
+  windowStart    DateTime
+  count          Int      @default(0)
+
+  @@unique([identifierHash, windowStart])
+  @@index([windowStart])
+}
+
+model Account {
+  id        String        @id @default(cuid())
+  userId    String
+  label     String
+  status    AccountStatus @default(PENDING)
+  accountNo String?       @unique
+  createdAt DateTime      @default(now())
+  user      User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+  wallets   Wallet[]
+
+  @@index([userId, status])
+}
+
+model Wallet {
+  id        String        @id @default(cuid())
+  accountId String
+  currency  Currency
+  createdAt DateTime      @default(now())
+  account   Account       @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  entries   LedgerEntry[]
+
+  @@unique([accountId, currency])
+  @@index([accountId])
+}
+
+model Transaction {
+  idempotencyKey String            @unique
+  id             String            @id @default(cuid())
+  reference      String            @unique
+  type           TransactionType
+  status         TransactionStatus @default(PENDING)
+  amount         Decimal           @db.Decimal(20, 4)
+  fee            Decimal           @default(0) @db.Decimal(20, 4)
+  currency       Currency
+  description    String?
+  providerRef    String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  entries        LedgerEntry[]
+
+  @@index([status, createdAt])
+  @@index([type, createdAt])
+}
+
+model LedgerEntry {
+  id            String      @id @default(cuid())
+  transactionId String
+  walletId      String
+  side          LedgerSide
+  amount        Decimal     @db.Decimal(20, 4)
+  currency      Currency
+  createdAt     DateTime    @default(now())
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Restrict)
+  wallet        Wallet      @relation(fields: [walletId], references: [id], onDelete: Restrict)
+
+  @@index([walletId, createdAt])
+  @@index([transactionId])
+}
+
+model Device {
+  id           String    @id @default(cuid())
+  userId       String
+  label        String
+  credentialId String?   @unique
+  lastSeenAt   DateTime?
+  createdAt    DateTime  @default(now())
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model ExchangeRate {
+  id         String   @id @default(cuid())
+  base       Currency
+  quote      Currency
+  rate       Decimal  @db.Decimal(24, 10)
+  source     String
+  observedAt DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([base, quote, observedAt])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  action     String
+  targetType String
+  targetId   String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  actor      User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([actorId, createdAt])
+  @@index([targetType, targetId])
+}
+
+model SupportTicket {
+  id        String   @id @default(cuid())
+  userId    String
+  subject   String
+  status    String   @default("OPEN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId, status])
+}
+
+model AdminAssignment {
+  id        String    @id @default(cuid())
+  userId    String    @unique
+  role      AdminRole
+  createdAt DateTime  @default(now())
+
+  @@index([role])
+}
