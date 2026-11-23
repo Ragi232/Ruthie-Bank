@@ -135,7 +135,6 @@ export const LoansScreen: React.FC = () => {
                 <div>
                   <span className="text-slate-400 block">Next Installment</span>
                   <span className="text-lg font-bold font-mono text-amber-400">
-                  Not available
                   </span>
                 </div>
                 <div>
@@ -156,7 +155,6 @@ export const LoansScreen: React.FC = () => {
                   size="sm"
                   onClick={() => {
                     playHaptic('light');
-                  Not available
                     setRepayModalOpen(true);
                   }}
                 >
@@ -253,20 +251,17 @@ export const LoansScreen: React.FC = () => {
               <div className="flex items-center justify-between">
                 <span className="text-slate-500">Repayment estimate</span>
                 <span className="text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400">
-                  Not available
                   <span className="text-xs font-normal text-slate-400"> / mo</span>
                 </span>
               </div>
               <div className="flex items-center justify-between py-1 border-t border-slate-200/60 dark:border-white/5">
                 <span className="text-slate-500">Interest rate</span>
                 <span className="font-bold font-mono text-slate-900 dark:text-white">
-                  Not available
                 </span>
               </div>
               <div className="flex items-center justify-between py-1 border-t border-slate-200/60 dark:border-white/5">
                 <span className="text-slate-500">Total repayable</span>
                 <span className="font-bold font-mono text-slate-900 dark:text-white">
-                  Not available
                 </span>
               </div>
             </div>
