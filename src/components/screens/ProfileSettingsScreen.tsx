@@ -25,7 +25,6 @@ import {
 export const ProfileSettingsScreen: React.FC = () => {
   const {
     user,
-    updateUser,
     theme,
     toggleTheme,
     devices,
@@ -41,25 +40,27 @@ export const ProfileSettingsScreen: React.FC = () => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     playHaptic('medium');
-    setIsAuthenticated(false);
-    setCurrentScreen('auth');
-    showDynamicIsland('Logged Out', 'Your session has been securely ended', 'security');
+    try {
+      const response = await fetch('/api/auth/logout', { method: 'POST', cache: 'no-store' });
+      if (!response.ok) throw new Error('Logout request failed');
+      setIsAuthenticated(false);
+      setCurrentScreen('auth');
+      showDynamicIsland('Signed out', 'The server revoked this session.', 'security');
+    } catch {
+      showDynamicIsland({ title: 'Sign out failed', subtitle: 'The server could not revoke this session. Try again.', type: 'security' });
+    }
   };
 
   const handlePasswordChange = (e: React.FormEvent) => {
     e.preventDefault();
-    playHaptic('success');
-    setPasswordModalOpen(false);
-    showDynamicIsland('Password Updated', 'Your security password was changed successfully', 'success');
+    showDynamicIsland({ title: 'Password change unavailable', subtitle: 'No server-side password-change flow is connected. Use password reset instead.', type: 'security' });
   };
 
   const handlePinChange = (e: React.FormEvent) => {
     e.preventDefault();
-    playHaptic('success');
-    setPinModalOpen(false);
-    showDynamicIsland('PIN Updated', 'New 6-digit transaction PIN set', 'success');
+    showDynamicIsland({ title: 'PIN setup unavailable', subtitle: 'A transaction PIN cannot be stored or verified in this preview.', type: 'security' });
   };
 
   return (
@@ -168,7 +169,7 @@ export const ProfileSettingsScreen: React.FC = () => {
         >
           <div className="flex items-center justify-between mb-2">
             <HelpCircle size={18} className="text-sky-500 group-hover:scale-110 transition-transform" />
-            <span className="text-[10px] font-bold text-sky-500">24/7 Care →</span>
+            <span className="text-[10px] font-bold text-sky-500">Support preview →</span>
           </div>
           <h4 className="text-xs font-bold text-slate-900 dark:text-white">Concierge & Support</h4>
           <p className="text-[11px] text-slate-400 mt-0.5">Open dispute tickets or live chat with wealth advisor</p>
@@ -206,12 +207,7 @@ export const ProfileSettingsScreen: React.FC = () => {
             <button
               onClick={() => {
                 playHaptic('light');
-                updateUser({ biometricsEnabled: !user.biometricsEnabled });
-                showDynamicIsland(
-                  user.biometricsEnabled ? 'Biometrics Disabled' : 'Biometrics Activated',
-                  'Security preference updated',
-                  'security'
-                );
+                showDynamicIsland({ title: 'Passkey setup unavailable', subtitle: 'Server-side WebAuthn enrollment is not implemented.', type: 'security' });
               }}
               className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${
                 user.biometricsEnabled ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-white/20'
@@ -234,7 +230,7 @@ export const ProfileSettingsScreen: React.FC = () => {
             <button
               onClick={() => {
                 playHaptic('light');
-                updateUser({ twoFactorEnabled: !user.twoFactorEnabled });
+                showDynamicIsland({ title: 'MFA setup unavailable', subtitle: 'No server-side second-factor enrollment flow is connected.', type: 'security' });
               }}
               className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${
                 user.twoFactorEnabled ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-white/20'
@@ -318,7 +314,7 @@ export const ProfileSettingsScreen: React.FC = () => {
                 <button
                   onClick={() => {
                     playHaptic('warning');
-                    showDynamicIsland('Device Revoked', `${dev.deviceName} disconnected`, 'security');
+                    showDynamicIsland({ title: 'Session revocation unavailable', subtitle: 'Device and session management APIs are not implemented.', type: 'security' });
                   }}
                   className="p-2 text-rose-500 hover:bg-rose-500/10 rounded-xl transition-colors"
                 >
@@ -356,7 +352,7 @@ export const ProfileSettingsScreen: React.FC = () => {
         >
           <div className="flex items-center justify-between mb-2">
             <HelpCircle size={18} className="text-sky-500 group-hover:scale-110 transition-transform" />
-            <span className="text-[10px] font-bold text-sky-500">24/7 Care →</span>
+            <span className="text-[10px] font-bold text-sky-500">Support preview →</span>
           </div>
           <h4 className="text-xs font-bold text-slate-900 dark:text-white">Concierge & Support</h4>
           <p className="text-[11px] text-slate-400 mt-0.5">Open dispute tickets or live chat with wealth advisor</p>

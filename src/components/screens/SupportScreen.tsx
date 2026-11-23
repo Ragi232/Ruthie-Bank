@@ -25,10 +25,7 @@ import { SupportTicketItem } from '@/types';
 
 export const SupportScreen: React.FC = () => {
   const {
-    user,
     supportTickets,
-    createSupportTicket,
-    sendTicketReply,
     playHaptic,
     showDynamicIsland,
   } = useBank();
@@ -45,14 +42,7 @@ export const SupportScreen: React.FC = () => {
   const [newMessage, setNewMessage] = useState('');
 
   // Live Concierge Chat state
-  const [liveMessages, setLiveMessages] = useState<Array<{ id: string; sender: 'user' | 'agent'; text: string; time: string }>>([
-    {
-      id: 'l1',
-      sender: 'agent',
-      text: `Hello ${user.firstName}! Welcome to Ruthie Private Concierge. I am Sola, your dedicated wealth liaison. How can I assist you with your transactions, wire releases, or investment allocations today?`,
-      time: 'Just now',
-    },
-  ]);
+  const [liveMessages, setLiveMessages] = useState<Array<{ id: string; sender: 'user' | 'agent'; text: string; time: string }>>([]);
   const [liveInput, setLiveInput] = useState('');
 
   // Emergency Lock Modal
@@ -63,98 +53,48 @@ export const SupportScreen: React.FC = () => {
 
   const faqs = [
     {
-      q: 'What are the daily withdrawal and transfer limits on Ruthie Bank?',
-      a: 'Tier 1 accounts can transfer up to ₦1,000,000 daily. Tier 2 accounts have a ₦5,000,000 daily limit, and Tier 3 verified accounts enjoy unlimited transfers with up to $25,000 foreign currency daily wire capacity.',
+      q: "Can I use this preview to send or receive money?",
+      a: "No. Deposits, transfers, withdrawals, and payments are unavailable. No funds are held or moved by this application.",
     },
     {
-      q: 'How does Ruthie Vault compound interest up to 18.5% APY?',
-      a: 'Ruthie Vault yields are backed by primary auction Federal Government of Nigeria Treasury Bills and sovereign Eurobonds. Interest compounds daily and is automatically credited directly to your Vault balance at midnight WAT.',
+      q: "Are the balances, transaction history, rates, and product figures live?",
+      a: "No. They are sample data used to demonstrate the interface and do not describe a real account, quote, or offer.",
     },
     {
-      q: 'How do I fund my foreign currency (USD, GBP, EUR) wallets?',
-      a: 'Every foreign currency wallet includes dedicated local requisites (US routing/account, UK sort code/account, and European IBAN). You can receive direct ACH, Wire, or SEPA transfers from any global bank with zero receiving fees.',
+      q: "Are savings, investments, or loans available?",
+      a: "No. The screens are previews only. No rate, return, loan eligibility, approval, or disbursement is offered.",
     },
     {
-      q: 'Are deposits on Ruthie Bank insured?',
-      a: 'Yes. All retail Naira and foreign currency deposits are insured up to statutory maximums by the Nigeria Deposit Insurance Corporation (NDIC). Securities and Eurobonds are held in segregated custody with registered FMDQ/SEC depositories.',
+      q: "Are deposits insured or protected by a banking partner?",
+      a: "No banking partner, deposit-taking service, or insurance arrangement is connected to this development preview.",
     },
   ];
-
   const handleCreateTicketSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newSubject.trim() || !newMessage.trim()) return;
 
-    createSupportTicket({
-      subject: newSubject,
-      category: newCategory,
-      priority: newPriority,
-      message: newMessage,
-    });
-
-    setCreateModalOpen(false);
-    setNewSubject('');
-    setNewMessage('');
+    showDynamicIsland({ title: 'Support service unavailable', subtitle: 'No ticket API is connected. Your message was not submitted.', type: 'security' });
   };
 
   const handleSendReply = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedTicket || !replyText.trim()) return;
 
-    sendTicketReply(selectedTicket.id, replyText);
-    setReplyText('');
-
-    // Update locally selected ticket view
-    setSelectedTicket((prev) =>
-      prev
-        ? {
-            ...prev,
-            messages: [
-              ...prev.messages,
-              {
-                id: `msg_u_${Date.now()}`,
-                sender: 'user',
-                senderName: `${user.firstName} ${user.lastName}`,
-                text: replyText,
-                timestamp: 'Just now',
-              },
-            ],
-          }
-        : null
-    );
+    showDynamicIsland({ title: 'Support service unavailable', subtitle: 'No ticket API is connected. Your reply was not submitted.', type: 'security' });
   };
 
   const handleSendLiveMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!liveInput.trim()) return;
 
-    const userText = liveInput;
-    setLiveMessages((prev) => [
-      ...prev,
-      { id: `l_${Date.now()}`, sender: 'user', text: userText, time: 'Just now' },
-    ]);
-    setLiveInput('');
-    playHaptic('light');
-
-    setTimeout(() => {
-      setLiveMessages((prev) => [
-        ...prev,
-        {
-          id: `l_r_${Date.now()}`,
-          sender: 'agent',
-          text: `Thank you for sharing that, ${user.firstName}. I have verified your session security token. Your inquiry is being prioritized and handled with zero hold time.`,
-          time: 'Just now',
-        },
-      ]);
-      playHaptic('medium');
-    }, 1200);
+    showDynamicIsland({ title: 'Live support unavailable', subtitle: 'No chat service is connected. Your message was not sent.', type: 'security' });
   };
 
   const handleEmergencyFreeze = () => {
     playHaptic('warning');
-    setEmergencyModalOpen(false);
     showDynamicIsland({
-      title: 'Emergency Account Locked',
-      subtitle: 'All virtual cards and outbound transfers frozen immediately',
+      title: 'Account restriction unavailable',
+      subtitle: 'No server-side account lock or card controls are connected. No restriction was applied.',
       type: 'security',
       durationMs: 6000,
     });
@@ -162,18 +102,21 @@ export const SupportScreen: React.FC = () => {
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-6 pb-28 md:pb-12">
+      <div role="status" className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-700 dark:text-amber-200">
+        Sample tickets below are illustrative. New support messages and emergency account restrictions cannot be submitted here.
+      </div>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-white/10 pb-4">
         <div>
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-1">
             <Headphones size={16} />
-            <span>24/7 VIP Concierge & Care</span>
+            <span>Support preview</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
             Customer Support & Concierge
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            Dedicated private bankers, real-time ticket tracking, and immediate dispute resolution
+            Support tickets, live chat, and account controls are not connected in this preview.
           </p>
         </div>
 
@@ -222,7 +165,7 @@ export const SupportScreen: React.FC = () => {
                 Your Tickets ({supportTickets.length})
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Audited SLA response time under 15 minutes for Tier 3 clients
+                No live support response time is available in this preview.
               </p>
             </div>
           </div>
@@ -293,12 +236,12 @@ export const SupportScreen: React.FC = () => {
                   <span>Sola Clement</span>
                   <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" />
                 </h3>
-                <p className="text-[11px] text-slate-400">Senior Private Wealth Advisor · 24/7 Available</p>
+                <p className="text-[11px] text-slate-400">Senior Private Wealth Advisor · Sample interface only</p>
               </div>
             </div>
 
             <div className="text-right text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
-              End-to-End Encrypted Session
+              No live chat session is connected
             </div>
           </div>
 
@@ -441,7 +384,7 @@ export const SupportScreen: React.FC = () => {
         isOpen={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
         title="Open Support Ticket"
-        subtitle="Tier 3 Priority Routing"
+        subtitle="No live support routing is connected."
         maxWidth="md"
       >
         <form onSubmit={handleCreateTicketSubmit} className="space-y-4 pt-2">
@@ -511,8 +454,8 @@ export const SupportScreen: React.FC = () => {
       <GlassModal
         isOpen={emergencyModalOpen}
         onClose={() => setEmergencyModalOpen(false)}
-        title="Emergency Enclave Lock"
-        subtitle="Immediate defense action"
+        title="Account restriction unavailable"
+        subtitle="No server-side account restriction is connected."
         maxWidth="sm"
       >
         <div className="space-y-4 pt-2 text-center text-xs">
@@ -520,7 +463,7 @@ export const SupportScreen: React.FC = () => {
             <AlertTriangle size={32} />
           </div>
           <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
-            This will immediately freeze all outgoing bank transfers, lock your virtual debit cards, and terminate any unauthorized active web sessions.
+            No transfer, card, or session controls are connected. This preview cannot restrict an account.
           </p>
           <div className="grid grid-cols-2 gap-3 pt-2">
             <GlassButton variant="glass" onClick={() => setEmergencyModalOpen(false)}>

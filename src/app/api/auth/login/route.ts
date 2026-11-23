@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import { allowAuthAttempt, hashPassword, setSessionCookie, verifyPassword } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { loginSchema } from "@/lib/validation";
+import { isSameOriginMutation } from "@/lib/security";
 
 export async function POST(request: Request) {
+  if (!isSameOriginMutation(request)) return NextResponse.json({ error: { code: "INVALID_ORIGIN", message: "This request origin is not allowed." } }, { status: 403 });
   const parsed = loginSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: { code: "INVALID_INPUT", message: "Enter a valid email and password." } }, { status: 400 });
   const email = parsed.data.email.toLowerCase();

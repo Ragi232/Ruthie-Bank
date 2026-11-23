@@ -135,7 +135,7 @@ export const BookingsScreen: React.FC = () => {
         isOpen={Boolean(selectedBooking)}
         onClose={() => setSelectedBooking(null)}
         title="Confirm Booking & Reservation"
-        subtitle="Deducted instantly from your primary NGN wallet"
+        subtitle="Booking checkout is unavailable. No reservation or payment will be made."
         maxWidth="md"
       >
         {selectedBooking && (

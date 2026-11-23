@@ -12,39 +12,35 @@ export const OnboardingScreen: React.FC = () => {
   const slides = [
     {
       title: 'Welcome to Ruthie Bank',
-      subtitle: 'Spatial Liquid Banking',
-      description:
-        'An Apple-grade financial experience designed for seamless wealth management, instant settlement, and effortless elegance.',
+      subtitle: 'Development Preview',
+      description: 'Explore a visual prototype of a banking application. No banking service or customer account is connected.',
       icon: Sparkles,
       gradient: 'from-emerald-500/20 via-teal-500/10 to-transparent',
-      tag: 'Next-Gen Fintech',
+      tag: 'Sandbox Preview',
     },
     {
       title: 'Your Money Across the World',
-      subtitle: 'Multi-Currency Borderless Wallets',
-      description:
-        'Hold, receive, and convert Nigerian Naira, US Dollars, British Pounds, and Euros at true institutional rates with 0% markups.',
+      subtitle: 'Illustrative Wallet Screens',
+      description: 'Currency balances and exchange figures in this preview are sample data. No wallets, transfers, or live exchange rates are available.',
       icon: Globe2,
       gradient: 'from-blue-500/20 via-indigo-500/10 to-transparent',
-      tag: 'Global Mobility',
+      tag: 'No Live Wallets',
     },
     {
       title: 'Save and Grow Your Wealth',
-      subtitle: 'Ruthie Vault & High-Yield Assets',
-      description:
-        'Compound your money with up to 18.5% APY in Ruthie Vault, automated daily target savings, and sovereign Eurobond portfolios.',
+      subtitle: 'Savings and Investment Previews',
+      description: 'Savings and investment examples are not current offers. No deposits, investment orders, rates, or returns are available.',
       icon: TrendingUp,
       gradient: 'from-amber-500/20 via-yellow-500/10 to-transparent',
-      tag: '18.5% Compound APY',
+      tag: 'No Live Offers',
     },
     {
       title: 'Your Security Comes First',
-      subtitle: 'Hardware Enclave Protection',
-      description:
-        'Protected by Face ID biometric encryption, instant virtual card freezing, and real-time fraud monitoring on every step.',
+      subtitle: 'Security Work in Progress',
+      description: 'Server-side passkeys, card controls, account restrictions, and fraud monitoring are not connected in this preview.',
       icon: ShieldCheck,
       gradient: 'from-emerald-600/20 via-teal-600/10 to-transparent',
-      tag: 'Bank-Grade Defense',
+      tag: 'Server Security Pending',
     },
   ];
 

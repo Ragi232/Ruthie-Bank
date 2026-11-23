@@ -28,7 +28,7 @@ export const GlassBalanceCard: React.FC = () => {
     navigator.clipboard.writeText(user.accountNumber);
     setCopied(true);
     playHaptic('success');
-    showDynamicIsland('Copied', `Ruthie Bank account ${user.accountNumber} copied`, 'success');
+    showDynamicIsland('Sample number copied', 'This is not a Ruthie Bank account and cannot receive funds.', 'security');
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -156,11 +156,11 @@ export const GlassBalanceCard: React.FC = () => {
         <button
           onClick={() => {
             playHaptic('medium');
-            showDynamicIsland(
-              'Add Money',
-              `Fund your account via instant transfer to ${user.accountNumber}`,
-              'success'
-            );
+            showDynamicIsland({
+              title: 'Account funding unavailable',
+              subtitle: 'No bank account details or deposit provider are connected.',
+              type: 'security',
+            });
           }}
           className="flex items-center justify-center gap-2 py-3 px-3 rounded-2xl bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/20 text-white font-semibold text-xs transition-all duration-200 active:scale-95 cursor-pointer"
         >

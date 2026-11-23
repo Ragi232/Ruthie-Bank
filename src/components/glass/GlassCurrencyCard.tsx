@@ -26,7 +26,7 @@ export const GlassCurrencyCard: React.FC<GlassCurrencyCardProps> = ({
       navigator.clipboard.writeText(acct);
       setCopied(true);
       playHaptic('success');
-      showDynamicIsland('Copied to Clipboard', `${wallet.currency} Account details copied`, 'success');
+      showDynamicIsland('Sample number copied', 'This is not an account or deposit instruction.', 'security');
       setTimeout(() => setCopied(false), 2000);
     }
   };

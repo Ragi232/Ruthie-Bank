@@ -7,7 +7,6 @@ import { GlassTabBar } from '@/components/glass/GlassTabBar';
 import { GlassInput } from '@/components/glass/GlassInput';
 import { GlassButton } from '@/components/glass/GlassButton';
 import { History, Search, Download, Filter, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
-import { TransactionStatus } from '@/types';
 
 export const TransactionHistoryScreen: React.FC = () => {
   const { transactions, showDynamicIsland, playHaptic } = useBank();
@@ -41,7 +40,7 @@ export const TransactionHistoryScreen: React.FC = () => {
 
   const handleDownloadStatement = () => {
     playHaptic('medium');
-    showDynamicIsland('Account Statement', 'PDF statement for November 2026 dispatched to your email', 'success');
+    showDynamicIsland({ title: 'Statement export unavailable', subtitle: 'No verified ledger or statement service is connected.', type: 'security' });
   };
 
   return (
@@ -51,13 +50,13 @@ export const TransactionHistoryScreen: React.FC = () => {
         <div>
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-1">
             <History size={16} />
-            <span>Immutable Core Ledger</span>
+            <span>Sample History</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
             Activity & Transaction History
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            Real-time transactional audit trail with cryptographic proof of payment
+            Sample records only. This history is not a ledger or proof of payment.
           </p>
         </div>
 

@@ -14,20 +14,20 @@ import {
 } from '@/types';
 
 export const initialUser: UserProfile = {
-  id: 'usr_ruthie_01',
-  firstName: 'Ruthie',
-  lastName: 'Adebayo',
-  email: 'ruthie.adebayo@ruthiebank.com',
-  phone: '+234 812 345 6789',
-  accountNumber: '0284729104',
-  tag: '@ruthie',
+  id: '',
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: '',
+  accountNumber: 'Not issued',
+  tag: '',
   avatarUrl: '',
-  tier: 3,
-  bvnVerified: true,
-  ninVerified: true,
-  addressVerified: true,
-  biometricsEnabled: true,
-  twoFactorEnabled: true,
+  tier: 1,
+  bvnVerified: false,
+  ninVerified: false,
+  addressVerified: false,
+  biometricsEnabled: false,
+  twoFactorEnabled: false,
   defaultCurrency: 'NGN',
   language: 'English',
   theme: 'dark',
@@ -133,7 +133,7 @@ export const initialTransactions: TransactionRecord[] = [
     fee: 0,
     currency: 'NGN',
     timestamp: 'Today, 09:14 AM',
-    status: 'SUCCEEDED',
+    status: 'PREVIEW',
     category: 'transfer',
   },
   {
@@ -148,7 +148,7 @@ export const initialTransactions: TransactionRecord[] = [
     fee: 0,
     currency: 'NGN',
     timestamp: 'Today, 08:20 AM',
-    status: 'SUCCEEDED',
+    status: 'PREVIEW',
     category: 'transfer',
   },
   {
@@ -163,7 +163,7 @@ export const initialTransactions: TransactionRecord[] = [
     fee: 100.0,
     currency: 'NGN',
     timestamp: 'Yesterday, 06:45 PM',
-    status: 'SUCCEEDED',
+    status: 'PREVIEW',
     category: 'bills',
   },
   {
@@ -178,7 +178,7 @@ export const initialTransactions: TransactionRecord[] = [
     fee: 0,
     currency: 'USD',
     timestamp: 'Yesterday, 02:12 PM',
-    status: 'SUCCEEDED',
+    status: 'PREVIEW',
     category: 'fx',
   },
   {
@@ -193,7 +193,7 @@ export const initialTransactions: TransactionRecord[] = [
     fee: 0,
     currency: 'NGN',
     timestamp: '16 Nov 2026',
-    status: 'SUCCEEDED',
+    status: 'PREVIEW',
     category: 'savings',
   },
   {
@@ -208,7 +208,7 @@ export const initialTransactions: TransactionRecord[] = [
     fee: 0,
     currency: 'NGN',
     timestamp: '15 Nov 2026',
-    status: 'SUCCEEDED',
+    status: 'PREVIEW',
     category: 'lifestyle',
   },
   {
@@ -346,7 +346,7 @@ export const initialInvestments: InvestmentProduct[] = [
     pricePerUnit: 100.0,
     totalVolume: '$150M',
     availableUnits: 14200,
-    description: 'Sovereign USD guaranteed fixed income notes backed by the Federal Government of Nigeria.',
+    description: 'Illustrative security placeholder. No issuance or investment offer is connected to this preview.',
   },
   {
     id: 'inv_02',
@@ -361,7 +361,7 @@ export const initialInvestments: InvestmentProduct[] = [
     pricePerUnit: 1000.0,
     totalVolume: '₦10.5B',
     availableUnits: 450000,
-    description: 'Ultra-safe short-term government debt obligations with guaranteed compound returns.',
+    description: 'Illustrative savings product placeholder. No rate, return, or investment offer is available.',
   },
   {
     id: 'inv_03',
@@ -376,7 +376,7 @@ export const initialInvestments: InvestmentProduct[] = [
     pricePerUnit: 50.0,
     totalVolume: '$85M',
     availableUnits: 25800,
-    description: 'Curated index fund tracking the top 15 AI, semiconductor, and cloud computing leaders.',
+    description: 'Illustrative equity product placeholder. No live issuer or investment offer is connected.',
   },
   {
     id: 'inv_04',
@@ -391,38 +391,11 @@ export const initialInvestments: InvestmentProduct[] = [
     pricePerUnit: 5000.0,
     totalVolume: '₦4.2B',
     availableUnits: 85000,
-    description: 'Fully insured agricultural supply chain export financing across Nigeria and Côte d’Ivoire.',
+    description: 'Illustrative agriculture product placeholder. No insurance or investment offer is connected.',
   },
 ];
 
-export const initialUserInvestments: UserInvestment[] = [
-  {
-    id: 'uinv_01',
-    productId: 'inv_01',
-    productName: 'FRN Eurobond 2029',
-    units: 25,
-    investedAmount: 2500.0,
-    currentValue: 2746.25,
-    accruedReturn: 246.25,
-    currency: 'USD',
-    startDate: '12 Jan 2026',
-    maturityDate: '12 Jan 2029',
-    status: 'ACTIVE',
-  },
-  {
-    id: 'uinv_02',
-    productId: 'inv_02',
-    productName: 'Ruthie High-Yield Treasury Bills',
-    units: 800,
-    investedAmount: 800000.0,
-    currentValue: 971200.0,
-    accruedReturn: 171200.0,
-    currency: 'NGN',
-    startDate: '01 Mar 2026',
-    maturityDate: '28 Feb 2027',
-    status: 'ACTIVE',
-  },
-];
+export const initialUserInvestments: UserInvestment[] = [];
 
 export const initialLoanEligibility: LoanEligibility = {
   creditScore: 785,

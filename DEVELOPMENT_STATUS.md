@@ -1,85 +1,95 @@
-# Development status
+# Ruthie Bank Development Status
 
-Updated: 2026-11-18
+Updated: 2026-11-20
 
-## Release audit update
+## Release assessment
 
-- Confirmed Next.js 15 App Router, React 19, TypeScript, Tailwind CSS v4, Prisma, and PostgreSQL schema. The app currently uses Next.js route handlers and client-side mock state; NestJS/FastAPI/Redis/mobile services are not present.
-- Ruthie Island is mounted on authenticated app screens. It now remains visible when there is no active notification, identifies the sandbox state, expands/collapses accessibly, and respects the mobile safe area.
-- Added a CSS fallback for browsers without backdrop-filter and global reduced-motion handling.
-- `git diff --check` passed. Runtime/build/browser checks remain unavailable because Node.js, npm, PostgreSQL CLI, and Docker are absent.
-- Financial workflows in `BankContext.tsx` remain client-side simulated state; they are not ledger-backed and must not be used for real funds. No live provider integrations are configured.
-- Launch status: not production-ready. Resolve the fake financial workflows, server-side authorization/admin enforcement, database migrations/integration tests, and release verification before deployment.
-- Dashboard now derives date and greeting from browser local time, updates each minute, and no longer shows hardcoded November 2026 values. Midnight falls into the evening greeting period.
-- Removed fabricated dashboard FX quotes, portfolio return claims, AI-generated surplus advice, and fake investment FX aggregation. Savings and account labels now identify sample/demo data.
+**Not production-ready. No live-money functionality is implemented or enabled.** This repository is a Next.js application with a sandbox UI, authentication foundation, and an early Prisma data model. The UI contains sample customer, balance, transaction, rate, savings, investment, loan, support, and admin data. These values are not account records or offers.
 
-## Completed
+This status is based on a static repository audit. Node.js, npm, and Git are not available in the current shell, and no PostgreSQL connection is configured here. Runtime, migration, build, lint, and test behavior therefore remain unverified in this environment.
 
-- Complete Next.js 15 App Router, React 19, TypeScript, and Tailwind CSS v4 banking application architecture.
-- Full Liquid Glass design system with frosted glass surfaces (`.liquid-glass`), specular refraction highlights, midnight navy (`#03080e`), emerald green (`#10b981`), and champagne gold accents for both dark and light modes.
-- **Interactive Ruthie Island Component (`DynamicIsland.tsx`)**:
-  - Compact capsule and expanded interactive modes with spring drop-down animation.
-  - Full support for 8 event types: Incoming payment, Outgoing transfer, Live transaction status with real-time settlement progress bar, Security alerts with emergency lock, Savings milestones, Investment allocations, Ruthie AI companion prompts, and Success ledger confirmations.
-- **Complete Suite of 27 Application Screens**:
-  1. Splash Screen (`SplashScreen.tsx`): Liquid glass logo orb, 0-100% enclave loader, NDIC insurance badges.
-  2. Onboarding Screen (`OnboardingScreen.tsx`): 4-slide carousel with spatial spheres, pagination indicators, Skip and Continue flows.
-  3. Registration Screen (`AuthScreen.tsx`): Nigerian phone validation, password strength requirements, direct `/api/auth/register` integration with dev fallback.
-  4. Login Screen (`AuthScreen.tsx`): 256-bit TLS indicator, `/api/auth/login` integration, Face ID shortcut, password recovery link.
-  5. OTP Verification Screen (`AuthScreen.tsx`): 6-digit segmented input, automated development code injection.
-  6. Password and PIN Screens (`AuthScreen.tsx`, `ProfileSettingsScreen.tsx`): Interactive 6-digit glass keypad, password update modals.
-  7. Biometric Authentication Screen (`AuthScreen.tsx`): Face ID hardware enclave scanning simulation with pulse halo.
-  8. Main Dashboard (`DashboardScreen.tsx`): Multi-currency balance card with eye visibility toggle, Ruthie AI companion shortcut, 10 functioning quick actions, live institutional FX ticker, recent activity feed, savings progress ring, and cash flow chart.
-  9. Wallets Screen (`WalletsScreen.tsx`): Dedicated cards for NGN, USD, GBP, EUR, CAD, GHS, KES.
-  10. Multi-Currency Banking (`WalletsScreen.tsx`): Dedicated local and international wire requisites (US Routing, UK Sort Code, European IBAN).
-  11. Transfers Screen (`TransfersScreen.tsx`): Bank transfers, Ruthie @tag instant transfers, international wires, beneficiary quick-pick, account name auto-resolution, review modal, and PIN authorization keypad.
-  12. Withdrawals Screen (`WithdrawalsScreen.tsx`): ATM cardless cash out with 8-digit OTP cash code generator, 15-minute live expiration countdown timer, touchless ATM QR scanner, external bank wire cash-out, and daily limit tracking.
-  13. Savings Screen (`SavingsScreen.tsx`): Ruthie Vault at 18.5% APY, active goal cards, progress rings, goal creation modal, and deposit funding modal.
-  14. Investments Screen (`InvestmentsScreen.tsx`): Capital markets portfolio summary, risk badges (low sovereign, moderate, high growth), product catalog (FGN Eurobonds, T-Bills, Tech Titans equity), and unit purchase modal.
-  15. Loans Screen (`LoansScreen.tsx`): Credit score gauge (785/850 prime), active loan repayment widget, loan calculator with duration/amount sliders, and instant credit disbursement.
-  16. Airtime Screen (`BillsScreen.tsx`): Airtime recharge across MTN, Airtel, Glo, and 9mobile with denomination chips.
-  17. Data Screen (`BillsScreen.tsx`): Data bundle selection across Nigerian telcos.
-  18. Bills and Utilities Screen (`BillsScreen.tsx`): Prepaid electricity token generator for IKEDC/EKEDC/etc., with token display and copy.
-  19. Subscriptions Screen (`BookingsScreen.tsx`): Digital entertainment & streaming subscriptions management (Netflix, Spotify, Starlink).
-  20. Bookings Screen (`BookingsScreen.tsx`): Flights, luxury hotels, tech conference tickets, and concierge reservation checkout.
-  21. Ruthie AI Screen (`RuthieAIScreen.tsx`): Apple Intelligence gradient glow header, chat stream, financial diagnostics data cards, prompt suggestions, and real-time response simulation.
-  22. Transaction History Screen (`TransactionHistoryScreen.tsx`): Full ledger search, filter tabs (All, Inflow, Outflow, Pending), and statement export.
-  23. Transaction Receipts (`TransactionReceiptModal.tsx`): Official electronic proof of payment, reference copy with toast, PDF download simulation, and Web Share API integration.
-  24. Notifications Screen (`NotificationsScreen.tsx`): Full activity center with category filters, unread badge counters, mark-all-read, and deep links.
-  25. Profile and Settings Screen (`ProfileSettingsScreen.tsx`): KYC verification tier status, biometric toggles, authorized devices manager with session revocation, and theme switcher.
-  26. Customer Support Screen (`SupportScreen.tsx`): 24/7 VIP Concierge live chat simulation, ticket tracking with thread replies, new ticket modal, FAQ accordion, and emergency account freeze.
-  27. Admin Dashboard (`AdminDashboardScreen.tsx`): Executive operations cockpit, key metrics (Total Deposits, 24h Cleared Volume, Active Profiles, AML Shield), customer management table with lock/unlock and KYC tier upgrades, live ledger audit stream, and FX rate governance.
-- Responsive design across mobile phones (<640px), tablets (640px-1024px), and desktop computers (>1024px) with safe area padding.
-- Prisma PostgreSQL schema for users, sessions, OTP challenges, auth factors, accounts, wallets, ledger entries, rates, audit logs, and support.
-- Backend API authentication endpoints (`/api/auth/login`, `/api/auth/register`, `/api/auth/session`, `/api/auth/verify-email`, `/api/auth/password-reset`).
+## Repository and stack audit
 
-## In progress
+- 82 repository files were inventoried. The source is a single Next.js 15 App Router application; there is no separate NestJS/FastAPI service.
+- `package.json` declares React 19, TypeScript 5.8, Tailwind CSS 4, Prisma 6, PostgreSQL, and Vitest 5. Dependencies are locked in `package-lock.json`.
+- Scripts declared: `dev`, `build`, `start`, `lint` (`next lint`), `db:generate`, `db:migrate` (`prisma migrate dev`), `db:studio`, and `test` (`vitest run`). Script behavior was not executed.
+- No `prisma/migrations` directory or initial migration is present. `prisma migrate deploy` has no checked-in migration history to deploy.
+- Tests present: `src/lib/auth.test.ts`, `src/lib/otp.test.ts`, and `src/lib/auth.integration.test.ts`.
+- API routes present: health; registration, login, logout, session, email verification, password reset request, and password reset completion. There are no customer, wallet, ledger, transaction, transfer, payment, KYC, notification, support, AI, or admin API routes.
 
-- Live external banking provider adapter integrations (Interswitch, NIBSS, Flutterwave, Paystack, Mono).
-- Automated end-to-end database-backed test suite.
-- Atomic OTP claim and protected operation transaction with unit coverage for replay and failed attempts.
-- Email verification challenge consumption, account activation, and initial NGN wallet creation now share one database transaction.
-- Added PostgreSQL integration tests for protected-operation rollback, single-use under concurrent requests, password update, and session revocation (`src/lib/auth.integration.test.ts`).
+## Verified code functionality
 
-## Remaining
+### Authentication foundation
 
-- OTP delivery; TOTP, WebAuthn/passkeys, transaction PIN, device and login-history management.
-- Ledger posting/reversal/reconciliation APIs, concurrency controls, and idempotent provider operations.
-- Authorized provider adapters for FX, deposits, withdrawals, transfers, bills, airtime, and bookings.
-- Savings, investments, loans, AI service, real-time Island events, support workflows, and admin authorization/console.
-- OpenAPI, deployment hardening, Redis/BullMQ, mobile app, and operational monitoring.
+- Registration validates a Nigerian phone number and password, stores a scrypt password hash, and creates a pending user.
+- Email verification and password reset use six-digit, purpose-scoped HMAC hashes, ten-minute expiry, and a five-attempt limit. OTP delivery is not configured; a code is returned only under the explicit local sandbox setting `EXPOSE_DEV_OTP=true`.
+- Successful email verification changes the user to active and creates an account plus an NGN wallet in a Prisma transaction.
+- Login checks account status, password, and verified email. Sessions use opaque random tokens; only SHA-256 token hashes are stored. Cookies are HTTP-only, SameSite Strict, and Secure when `NODE_ENV=production`; session lifetime is 12 hours.
+- Logout revokes the current session. Password reset revokes all of the user's sessions.
+- Authentication attempts are counted in hashed database buckets for a 15-minute window, with a limit of ten attempts per bucket.
+- These are code-path findings, not runtime-confirmed behavior. Email/SMS delivery, MFA, WebAuthn enrollment and verification, transaction PIN verification, device/session management screens, and a standalone account-lockout workflow are absent.
 
-## Known limitations
+### Data model
 
-- Dashboard product data uses local mock data; no live financial operation is available.
-- OTP delivery is not connected. Development code exposure is limited to explicit isolated sandbox configuration.
-- API routes currently use Next.js route handlers; NestJS and FastAPI services are not present in this repository.
-- No live provider credentials or exchange-rate values are configured.
+The Prisma schema defines users, sessions, OTP challenges, authentication factors, auth-rate-limit buckets, accounts, currency wallets, transactions, wallet ledger entries, devices, exchange-rate observations, audit logs, support tickets, and admin assignments.
 
-## Tests
+The financial model is incomplete:
 
-- Not run: `npm` and `node` are not installed or available on PATH in this environment.
-- Auth unit coverage includes password hash primitives, request validation, and mocked OTP transaction/replay behavior. PostgreSQL OTP integration tests require `AUTH_TEST_DATABASE_URL` pointed at a dedicated disposable test database and were not run in this environment.
+- `Transaction.amount` and ledger entry amounts are `Decimal(20,4)`, but no implemented service enforces currency minor-unit precision or balanced postings.
+- Ledger entries can only point to a wallet; there is no general ledger-account chart for cash, settlement, fees, suspense, or provider clearing.
+- There are no database checks requiring positive amounts, balanced debits/credits, immutable posted entries, valid state transitions, or a provider reference unique per provider.
+- The transaction idempotency key is globally unique but has no operation/customer scope. No route uses it.
+- Provider events, reconciliation records, KYC cases, risk alerts, transaction limits, savings products, investments, loans, beneficiaries, and consent records are not modeled.
+- There are no migration files, and schema changes have not been generated or applied.
 
-## Next development task
+## Frontend and product audit
 
-- Extend PostgreSQL integration coverage to email verification/account provisioning, then continue auth session/device management.
+- `BankContext.tsx` initializes customer data from `src/lib/mock-data.ts`; it does not load balances or transactions from an API.
+- Transfers, withdrawals, conversions, bills, savings deposits, investment purchases, loan repayments/disbursements, and bookings mutate React state and construct local transactions marked `SUCCEEDED`. They do not call the server or a provider.
+- The context also contains simulated support replies, administrator actions, and Ruthie AI answers. The admin dashboard has static metrics and customers, and has no server-side role enforcement.
+- Screens include dashboard, wallets, transfers, withdrawals, savings, investments, loans, bills, bookings, AI, history, notifications, profile, support, and admin. Most banking screens are UI prototypes, not implemented backend features.
+- Specific balances, beneficiaries, account requisites, FX rates, transaction outcomes, savings yields, investment returns, loan eligibility, insurance/NDIC statements, support answers, and admin statistics are sample or unsupported claims. They must not be presented as live facts or used for customer decisions.
+- Receipts and transaction history are derived from local sample state; they are not proof of payment or ledger records.
+
+## Security findings
+
+- The existing auth code uses a configured scrypt work factor and timing-safe hash comparison. Production parameters still need deployment-hardware review.
+- OTP issuance is not connected to an email/SMS provider. Registration and challenge creation are separate writes, so a challenge-creation failure can leave an unusable pending account.
+- Rate limiting depends on forwarded-IP headers and requires a trusted reverse proxy that overwrites client-supplied values. There is no cleanup job for old buckets.
+- There is no explicit Origin validation for cookie-authenticated POST routes. SameSite Strict helps but is not the only CSRF control expected for production.
+- The root client context starts as authenticated and the auth UI contains sandbox/network fallbacks and client-only PIN/passkey completion paths. These are not server authorization and must fail closed.
+- No financial or admin operation is authorized or enforced server-side because those APIs do not exist.
+- No security headers beyond disabling the powered-by header, centralized structured logging, error monitoring, secrets manager, or audit policy is configured.
+
+## Integrations and compliance readiness
+
+- No payment, banking, FX, OTP, email, KYC, utility, AI, investment, loan, or booking provider adapter is connected. `.env.example` contains empty placeholder credentials only.
+- No provider credentials, merchant onboarding, licensed banking partner, regulatory authorization, or compliance approval is available in the repository.
+- A current Paystack and Flutterwave comparison is recorded in [Provider evaluation](docs/PROVIDER_EVALUATION.md). It is research only and does not select or enable a provider.
+- KYC, AML/risk review, account restriction, consent, retention, admin review, and support workflows are not implemented as server-side workflows. Existing screens do not establish regulatory compliance.
+- Ruthie AI has no server AI service or authorized account-data retrieval. The current mock replies invent financial facts and must not be treated as advice or customer data.
+
+## Testing status
+
+- Declared tests: 10 cases (8 unit/mock cases and 2 PostgreSQL integration cases gated by `AUTH_TEST_DATABASE_URL`).
+- The integration suite requires a dedicated disposable PostgreSQL database and performs user/challenge/session writes.
+- No ledger, transfer, payment, webhook, idempotency, concurrency, API authorization, KYC, admin, AI privacy, or end-to-end tests exist.
+- `npm ci`, Prisma generation, TypeScript, tests, build, and lint have not run because Node/npm are unavailable and there is no database configuration. Do not interpret this as a pass.
+
+## Deployment requirements and remaining work
+
+1. Install a supported Node.js/npm toolchain and PostgreSQL; provision a dedicated test database.
+2. Add and review an initial migration and migration deployment/rollback procedure; test backups and restore.
+3. Add server-side authorization and Origin/CSRF protections; remove client-only auth fallbacks; connect OTP delivery and implement session/device, MFA, and PIN flows.
+4. Replace the partial wallet-only entries with a balanced, immutable double-entry ledger using minor units or strictly validated decimals, transactional posting, idempotency scope, concurrency control, compensating reversals, and reconciliation.
+5. Implement customer-owned account APIs and provider-independent payment ports, then add a sandbox adapter only after onboarding. Verify provider transactions and signatures before any ledger posting.
+6. Implement server-enforced admin roles, audit logging, KYC/AML case review, limits, support, notifications, and safe AI account-data access.
+7. Remove sample financial claims from customer screens or keep them clearly marked as non-live preview data. Do not expose fabricated rates, balances, approvals, yields, or insurance claims as real.
+8. Configure deployment secrets (`DATABASE_URL`, strong `AUTH_SECRET`, `APP_ENV`, `NEXT_PUBLIC_APP_URL`), HTTPS, trusted proxy behavior, security headers, monitoring, log redaction, rate-limit retention, and operational alerts.
+9. Run the requested install, generate, typecheck, test, build, and lint commands in a provisioned environment and record exact results.
+
+## Readiness classification
+
+- **Sandbox-ready:** visual preview and authentication code are present; runtime checks are pending. Provider operations are unavailable.
+- **Production-ready:** no.
+- **Live-money-ready:** no. No feature may accept deposits, hold funds, issue transfer instructions, execute payments, or represent transaction success.

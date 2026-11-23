@@ -1,21 +1,18 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useBank } from '@/context/BankContext';
 import { GlassInput } from '@/components/glass/GlassInput';
 import { GlassButton } from '@/components/glass/GlassButton';
-import { GlassPinKeypad } from '@/components/glass/GlassPinKeypad';
 import { GlassOTPInput } from '@/components/glass/GlassOTPInput';
 import {
   Mail,
   Lock,
   Phone,
   User,
-  ScanFace,
   ShieldCheck,
   ArrowLeft,
   Smartphone,
-  KeyRound,
   AlertCircle,
   CheckCircle2,
   Fingerprint,
@@ -29,17 +26,15 @@ export const AuthScreen: React.FC = () => {
     setIsAuthenticated,
     showDynamicIsland,
     playHaptic,
-    user,
     updateUser,
   } = useBank();
 
   // Sign up & Login fields
-  const [firstName, setFirstName] = useState('Ruthie');
-  const [lastName, setLastName] = useState('Adebayo');
-  const [email, setEmail] = useState('ruthie.adebayo@ruthiebank.com');
-  const [phone, setPhone] = useState('+2348123456789');
-  const [password, setPassword] = useState('RuthieBank2026!');
-  const [pin, setPin] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
   const [devOtp, setDevOtp] = useState('');
 
@@ -51,24 +46,6 @@ export const AuthScreen: React.FC = () => {
   // UI state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [sandboxOfflineNotice, setSandboxOfflineNotice] = useState(false);
-
-  // Real WebAuthn platform authenticator capability detection
-  const [webAuthnSupported, setWebAuthnSupported] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    if (
-      typeof window !== 'undefined' &&
-      window.PublicKeyCredential &&
-      PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable
-    ) {
-      PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
-        .then((available) => setWebAuthnSupported(available))
-        .catch(() => setWebAuthnSupported(false));
-    } else {
-      setWebAuthnSupported(false);
-    }
-  }, []);
 
   // Validation helpers matching backend rules
   const validateNigerianPhone = (val: string) => {
@@ -91,7 +68,6 @@ export const AuthScreen: React.FC = () => {
       return;
     }
     setError('');
-    setSandboxOfflineNotice(false);
     setLoading(true);
     playHaptic('medium');
 
@@ -115,26 +91,18 @@ export const AuthScreen: React.FC = () => {
           firstName: data.user.firstName,
           lastName: data.user.lastName,
           email: data.user.email,
+          phone: data.user.phone ?? '',
         });
       }
 
       setLoading(false);
-      setAuthSubView('pin');
+      setIsAuthenticated(true);
+      setCurrentScreen('dashboard');
+      showDynamicIsland({ title: `Welcome, ${data?.user?.firstName ?? 'back'}`, subtitle: 'Signed in with your server-verified account.', type: 'success' });
     } catch {
-      // Server database offline in sandbox container
       setLoading(false);
-      setSandboxOfflineNotice(true);
+      setError('Unable to reach the sign-in service. No session was created. Please try again.');
     }
-  };
-
-  // Sign In using Sandbox Demo Profile (when backend DB is unconfigured/offline in container)
-  const handleContinueWithSandbox = () => {
-    playHaptic('medium');
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      setAuthSubView('pin');
-    }, 400);
   };
 
   // Handle Sign Up with Real Backend API Integration
@@ -182,7 +150,7 @@ export const AuthScreen: React.FC = () => {
       setAuthSubView('otp');
     } catch {
       setLoading(false);
-      setSandboxOfflineNotice(true);
+      setError('Unable to reach the registration service. No account was created. Please try again.');
     }
   };
 
@@ -207,35 +175,16 @@ export const AuthScreen: React.FC = () => {
       }
 
       setLoading(false);
-      setAuthSubView('pin');
+      setIsAuthenticated(true);
+      setCurrentScreen('dashboard');
       showDynamicIsland({
         title: 'Email Verified',
-        subtitle: 'Profile created. Set your 6-digit transaction PIN',
+        subtitle: 'Your account was verified by the server.',
         type: 'success',
       });
     } catch {
       setLoading(false);
-      // Sandbox fallback
-      setAuthSubView('pin');
-    }
-  };
-
-  // Handle 6-Digit PIN completion
-  const handlePinChange = (newPin: string) => {
-    setPin(newPin);
-    if (newPin.length === 6) {
-      setLoading(true);
-      setTimeout(() => {
-        setLoading(false);
-        setIsAuthenticated(true);
-        setCurrentScreen('dashboard');
-        showDynamicIsland({
-          title: `Welcome Back, ${firstName || user.firstName}`,
-          subtitle: 'Enclave Session Authenticated',
-          type: 'success',
-          expanded: false,
-        });
-      }, 500);
+      setError('Unable to reach the verification service. Your account was not activated. Please try again.');
     }
   };
 
@@ -270,10 +219,14 @@ export const AuthScreen: React.FC = () => {
 
       setLoading(false);
       setAuthSubView('reset-password');
-      showDynamicIsland('Reset Code Dispatched', `6-digit code sent to ${email}`, 'success');
+      showDynamicIsland({
+        title: 'Password reset request received',
+        subtitle: 'No email delivery provider is connected, so reset instructions are unavailable.',
+        type: 'security',
+      });
     } catch {
       setLoading(false);
-      setAuthSubView('reset-password');
+      setError('Unable to reach the password-reset service. No reset request was completed. Please try again.');
     }
   };
 
@@ -312,51 +265,7 @@ export const AuthScreen: React.FC = () => {
       showDynamicIsland('Password Updated', 'Sign in with your new credentials', 'success');
     } catch {
       setLoading(false);
-      setResetSuccessMessage('Password updated in sandbox mode.');
-      setAuthSubView('login');
-    }
-  };
-
-  // Biometric / Passkey handling with genuine WebAuthn verification
-  const handleBiometricAuth = async () => {
-    playHaptic('medium');
-
-    if (!webAuthnSupported) {
-      setError('Biometric platform authenticator (Touch ID / Face ID / Windows Hello) is not available or not configured on this hardware. Please use your 6-digit transaction PIN.');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      // Trigger genuine browser WebAuthn challenge
-      const challenge = new Uint8Array(32);
-      window.crypto.getRandomValues(challenge);
-
-      const credential = await navigator.credentials.get({
-        publicKey: {
-          challenge,
-          timeout: 60000,
-          userVerification: 'preferred',
-        },
-      });
-
-      setLoading(false);
-      if (credential) {
-        setIsAuthenticated(true);
-        setCurrentScreen('dashboard');
-        showDynamicIsland({
-          title: 'Passkey Verified',
-          subtitle: 'WebAuthn hardware authenticator confirmed',
-          type: 'success',
-        });
-      }
-    } catch (err: any) {
-      setLoading(false);
-      if (err.name === 'NotAllowedError') {
-        setError('Biometric authentication request was cancelled or timed out. Please enter your PIN.');
-      } else {
-        setError(`Biometric verification unavailable (${err.message || 'unsupported'}). Use your 6-digit PIN.`);
-      }
+      setError('Unable to reach the password-reset service. Your password was not changed. Please try again.');
     }
   };
 
@@ -393,7 +302,7 @@ export const AuthScreen: React.FC = () => {
 
           <div className="flex items-center gap-1 text-[11px] text-emerald-400 font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-400/20">
             <ShieldCheck size={13} />
-            <span>256-bit TLS</span>
+            <span>Server session</span>
           </div>
         </div>
 
@@ -413,26 +322,6 @@ export const AuthScreen: React.FC = () => {
           </div>
         )}
 
-        {/* Sandbox Notice when DB server is offline */}
-        {sandboxOfflineNotice && (
-          <div className="p-3.5 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-200 text-xs space-y-2">
-            <p className="font-bold flex items-center gap-1.5">
-              <AlertCircle size={14} className="text-amber-400" />
-              <span>Backend Database Offline in Sandbox Container</span>
-            </p>
-            <p className="text-[11px] leading-relaxed text-amber-300/90">
-              The database server is unmigrated or unreachable in this isolated sandbox. You can proceed with the pre-configured authenticated profile to test all banking screens.
-            </p>
-            <button
-              type="button"
-              onClick={handleContinueWithSandbox}
-              className="w-full py-2 rounded-xl bg-amber-400 text-slate-950 font-bold text-xs hover:bg-amber-300 transition-colors cursor-pointer"
-            >
-              Sign In with Sandbox Profile →
-            </button>
-          </div>
-        )}
-
         {/* SUBVIEW: LOGIN */}
         {authSubView === 'login' && (
           <form onSubmit={handleLoginSubmit} className="space-y-4">
@@ -443,7 +332,7 @@ export const AuthScreen: React.FC = () => {
 
             <div className="space-y-3 pt-2">
               <GlassInput
-                label="Email or Phone Number"
+                label="Email Address"
                 type="text"
                 placeholder="name@ruthiebank.com"
                 value={email}
@@ -472,8 +361,7 @@ export const AuthScreen: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    setError('');
-                    setAuthSubView('biometric');
+                    setError('Passkey sign-in is not configured on the server. Use your password to sign in.');
                   }}
                   className="text-emerald-400 font-medium hover:underline flex items-center gap-1 cursor-pointer"
                 >
@@ -609,27 +497,6 @@ export const AuthScreen: React.FC = () => {
           </form>
         )}
 
-        {/* SUBVIEW: 6-DIGIT PIN */}
-        {authSubView === 'pin' && (
-          <div className="space-y-6 text-center">
-            <div className="space-y-1">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-400/30 flex items-center justify-center mx-auto text-emerald-400 mb-2">
-                <KeyRound size={24} />
-              </div>
-              <h2 className="text-xl font-bold tracking-tight text-white">Enter Transaction PIN</h2>
-              <p className="text-xs text-slate-400">
-                Enter your 6-digit security PIN to authenticate session
-              </p>
-            </div>
-
-            <GlassPinKeypad
-              pin={pin}
-              onChange={handlePinChange}
-              onBiometric={webAuthnSupported ? handleBiometricAuth : undefined}
-            />
-          </div>
-        )}
-
         {/* SUBVIEW: OTP VERIFICATION */}
         {authSubView === 'otp' && (
           <div className="space-y-6 text-center">
@@ -639,7 +506,7 @@ export const AuthScreen: React.FC = () => {
               </div>
               <h2 className="text-xl font-bold tracking-tight text-white">Verify Your Account</h2>
               <p className="text-xs text-slate-400">
-                Enter the 6-digit verification code sent to <span className="text-white font-medium">{email}</span>
+                Enter the verification code for <span className="text-white font-medium">{email}</span>
               </p>
             </div>
 
@@ -652,59 +519,9 @@ export const AuthScreen: React.FC = () => {
               </div>
             ) : (
               <div className="p-3 rounded-2xl bg-slate-900/60 border border-white/10 text-[11px] text-slate-400">
-                Sandbox code available in server log or enter any 6 digits for testing.
+                Email delivery is not configured. Verification cannot complete until a delivery provider is connected or an isolated local test code is explicitly enabled by the server operator.
               </div>
             )}
-          </div>
-        )}
-
-        {/* SUBVIEW: BIOMETRIC / PASSKEY INTERFACE */}
-        {authSubView === 'biometric' && (
-          <div className="space-y-6 text-center py-2">
-            <div className="relative w-24 h-24 mx-auto flex items-center justify-center">
-              <div className="absolute inset-0 rounded-full bg-emerald-500/20 blur-xl animate-pulse" />
-              <div className="relative w-20 h-20 rounded-full bg-slate-900/80 border-2 border-emerald-400/60 flex items-center justify-center text-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.5)]">
-                <Fingerprint size={40} />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <h2 className="text-xl font-bold tracking-tight text-white">Biometric Passkey Authentication</h2>
-              {webAuthnSupported === false ? (
-                <div className="p-3 rounded-2xl bg-slate-900/80 border border-white/10 text-xs text-slate-300 space-y-1">
-                  <p className="font-semibold text-amber-300">Platform Authenticator Not Detected</p>
-                  <p className="text-[11px] text-slate-400">
-                    Hardware biometrics (Face ID, Touch ID, or Windows Hello) are not configured or not accessible in this browser session.
-                  </p>
-                </div>
-              ) : (
-                <p className="text-xs text-slate-300">
-                  Authenticate with your system biometric passkey to verify your hardware enclave session.
-                </p>
-              )}
-            </div>
-
-            {webAuthnSupported && (
-              <GlassButton
-                variant="primary"
-                size="lg"
-                onClick={handleBiometricAuth}
-                loading={loading}
-                className="w-full"
-              >
-                Authenticate with Passkey
-              </GlassButton>
-            )}
-
-            <button
-              onClick={() => {
-                setError('');
-                setAuthSubView('pin');
-              }}
-              className="text-xs text-slate-400 hover:text-white cursor-pointer block mx-auto"
-            >
-              Use 6-digit PIN instead
-            </button>
           </div>
         )}
 
@@ -713,7 +530,7 @@ export const AuthScreen: React.FC = () => {
           <form onSubmit={handlePasswordResetRequest} className="space-y-4">
             <div className="space-y-1">
               <h2 className="text-2xl font-bold tracking-tight text-white">Reset Password</h2>
-              <p className="text-xs text-slate-400">Enter your registered email to receive a 6-digit reset code</p>
+              <p className="text-xs text-slate-400">Enter your registered email. Reset email delivery is currently unavailable.</p>
             </div>
 
             <GlassInput
@@ -744,7 +561,7 @@ export const AuthScreen: React.FC = () => {
             <div className="space-y-1">
               <h2 className="text-2xl font-bold tracking-tight text-white">Create New Password</h2>
               <p className="text-xs text-slate-400">
-                Enter the 6-digit code sent to <span className="text-white">{email}</span> and your new password
+                Enter your reset code for <span className="text-white">{email}</span> and your new password
               </p>
             </div>
 
@@ -752,6 +569,12 @@ export const AuthScreen: React.FC = () => {
               <div className="p-3 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-[11px] text-amber-200">
                 <span className="font-semibold">Local Development Reset Code: </span>
                 <span className="font-mono font-bold text-amber-300">{devOtp}</span>
+              </div>
+            )}
+
+            {!devOtp && (
+              <div className="p-3 rounded-2xl bg-slate-900/60 border border-white/10 text-[11px] text-slate-400">
+                No email provider is connected. A reset code will not be delivered in this environment.
               </div>
             )}
 

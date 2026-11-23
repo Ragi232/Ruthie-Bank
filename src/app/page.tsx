@@ -94,6 +94,9 @@ function BankAppContent() {
 
       {/* Main Responsive Viewport */}
       <main className="relative z-10 flex-1 min-w-0 px-4 sm:px-8 pt-20 sm:pt-24 md:pt-20 pb-28 md:pb-8 overflow-y-auto min-h-screen">
+        <div role="status" className="mx-auto mb-5 max-w-7xl rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs leading-relaxed text-amber-800 dark:text-amber-200">
+          <strong>Sandbox preview only.</strong> Balances, transactions, rates, offers, and customer details are sample data. Money movement and product actions are unavailable; no funds are held or transferred.
+        </div>
         {renderScreen()}
       </main>
 

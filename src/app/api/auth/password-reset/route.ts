@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { consumeOtpAnd, hashPassword, allowAuthAttempt } from "@/lib/auth";
 import { passwordResetCompleteSchema } from "@/lib/validation";
+import { isSameOriginMutation } from "@/lib/security";
 
 export async function POST(request: Request) {
+  if (!isSameOriginMutation(request)) return NextResponse.json({ error: { code: "INVALID_ORIGIN", message: "This request origin is not allowed." } }, { status: 403 });
   const parsed = passwordResetCompleteSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: { code: "INVALID_INPUT", message: "Check your email, code, and new password." } }, { status: 400 });
   const { email: rawEmail, code, password } = parsed.data;

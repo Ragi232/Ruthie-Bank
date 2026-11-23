@@ -76,9 +76,9 @@ export const SplashScreen: React.FC = () => {
 
       {/* Footer Credentials */}
       <div className="absolute bottom-6 text-center text-[10px] text-slate-400 tracking-wider">
-        <span>Licensed Microfinance & Digital FX Banking</span>
+        <span>Development Preview</span>
         <span className="mx-2">·</span>
-        <span>NDIC Insured</span>
+        <span>No live banking services</span>
       </div>
     </div>
   );

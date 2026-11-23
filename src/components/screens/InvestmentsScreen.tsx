@@ -30,11 +30,6 @@ export const InvestmentsScreen: React.FC = () => {
   const [buyModalOpen, setBuyModalOpen] = useState(false);
   const [isInvesting, setIsInvesting] = useState(false);
 
-  // Portfolio total
-  const totalInvestedNGN = userInvestments.reduce((acc, inv) => acc + (inv.currency === 'NGN' ? inv.currentValue : 0), 0);
-
-  const totalAccruedReturn = userInvestments.reduce((acc, inv) => acc + (inv.currency === 'NGN' ? inv.accruedReturn : 0), 0);
-
   const handleOpenBuy = (p: InvestmentProduct) => {
     playHaptic('light');
     setSelectedProduct(p);
@@ -47,14 +42,9 @@ export const InvestmentsScreen: React.FC = () => {
     const units = parseInt(unitsToBuy) || 0;
     if (units <= 0) return;
 
-    setIsInvesting(true);
     playHaptic('medium');
-
-    setTimeout(() => {
-      investInProduct(selectedProduct.id, units);
-      setIsInvesting(false);
-      setBuyModalOpen(false);
-    }, 800);
+    investInProduct(selectedProduct.id, units);
+    setBuyModalOpen(false);
   };
 
   const getRiskBadge = (level: InvestmentProduct['riskLevel']) => {
@@ -62,20 +52,20 @@ export const InvestmentsScreen: React.FC = () => {
       case 'LOW':
         return (
           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">
-            Low Risk (Sovereign)
+            Illustrative only
           </span>
         );
       case 'MODERATE':
         return (
           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/25">
-            Moderate Risk
+            Illustrative only
           </span>
         );
       case 'HIGH':
       default:
         return (
           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-500 border border-rose-500/25">
-            High Growth
+            Illustrative only
           </span>
         );
     }
@@ -87,13 +77,13 @@ export const InvestmentsScreen: React.FC = () => {
       <div className="border-b border-slate-200/80 dark:border-white/10 pb-4">
         <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-500 mb-1">
           <TrendingUp size={16} />
-          <span>Capital Markets & Sovereign Debt</span>
+          <span>Investment preview</span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-          Investment Portfolio & Securities
+          Investment information
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-          Institutional-grade fixed income, Federal Government Eurobonds, and curated US equities
+          Product examples are sample data. No investments, securities, or return figures are available.
         </p>
       </div>
 
@@ -102,16 +92,16 @@ export const InvestmentsScreen: React.FC = () => {
         <div className="md:col-span-2 space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 text-[11px] font-bold">
             <Sparkles size={14} />
-            <span>SEC Regulated & Sovereign Backed</span>
+            <span>Preview data · no live investment service</span>
           </div>
           <p className="text-xs uppercase tracking-wider text-slate-300 font-medium">
-            Active Investment Value (NGN Consolidated)
+            Investment balance
           </p>
           <h2 className="text-3xl sm:text-5xl font-black tracking-tight font-mono">
-            ₦{totalInvestedNGN.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+            Not available
           </h2>
           <p className="text-xs text-emerald-400 font-semibold">
-            +₦{totalAccruedReturn.toLocaleString('en-US', { minimumFractionDigits: 2 })} total accrued returns
+            No holdings or returns are connected.
           </p>
         </div>
 
@@ -119,24 +109,24 @@ export const InvestmentsScreen: React.FC = () => {
           <p className="text-[11px] text-slate-300 font-medium">Asset Allocation</p>
           <div className="space-y-1.5 text-xs">
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">FRN Eurobonds (USD)</span>
-              <span className="font-bold font-mono">68%</span>
+              <span className="text-slate-400">Asset allocation</span>
+              <span className="font-bold font-mono">Unavailable</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">High-Yield T-Bills</span>
-              <span className="font-bold font-mono">32%</span>
+              <span className="text-slate-400">Investment provider</span>
+              <span className="font-bold font-mono">Not connected</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Available Securities Catalog */}
+      {/* Sample catalog */}
       <div className="space-y-4">
         <div className="flex items-center justify-between px-1">
           <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-            Available Institutional Products
+            Illustrative Product Catalog
           </h2>
-          <span className="text-xs text-slate-400">Vetted & Licensed Issuers</span>
+          <span className="text-xs text-slate-400">No active offers</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -162,11 +152,8 @@ export const InvestmentsScreen: React.FC = () => {
                 </div>
 
                 <div className="text-right shrink-0">
-                  <span className="text-xs text-slate-400 block">Expected Return</span>
-                  <span className="text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400">
-                    +{prod.projectedReturn}%
-                  </span>
-                  <span className="text-[10px] text-slate-400 block font-medium">Annualized</span>
+                  <span className="text-xs text-slate-400 block">Returns</span>
+                  <span className="text-sm font-bold text-slate-500">Unavailable</span>
                 </div>
               </div>
 
@@ -177,25 +164,25 @@ export const InvestmentsScreen: React.FC = () => {
               <div className="grid grid-cols-3 gap-2 p-3 rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5 text-[11px]">
                 <div>
                   <span className="text-slate-400 block">Tenure</span>
-                  <span className="font-bold text-slate-900 dark:text-white">{prod.tenureDays} Days</span>
+                  <span className="font-bold text-slate-900 dark:text-white">Unavailable</span>
                 </div>
                 <div>
                   <span className="text-slate-400 block">Min Entry</span>
                   <span className="font-bold text-slate-900 dark:text-white">
-                    {prod.currency} {prod.minInvestment.toLocaleString()}
+                    Unavailable
                   </span>
                 </div>
                 <div>
                   <span className="text-slate-400 block">Price / Unit</span>
                   <span className="font-bold font-mono text-slate-900 dark:text-white">
-                    {prod.currency} {prod.pricePerUnit}
+                    Unavailable
                   </span>
                 </div>
               </div>
 
               <div className="flex items-center justify-between pt-2">
                 <span className="text-xs text-slate-500">
-                  Available: {prod.availableUnits.toLocaleString()} units
+                  No live offer
                 </span>
                 <GlassButton
                   variant="primary"
@@ -215,7 +202,7 @@ export const InvestmentsScreen: React.FC = () => {
       {/* User Active Positions Table */}
       <div className="space-y-4">
         <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-          Your Active Holdings ({userInvestments.length})
+          Investment holdings
         </h2>
 
         <div className="rounded-3xl bg-white/70 dark:bg-[#071726]/75 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-sm overflow-x-auto">
@@ -230,7 +217,9 @@ export const InvestmentsScreen: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-white/5 font-mono">
-              {userInvestments.map((inv) => (
+              {userInvestments.length === 0 ? (
+                <tr><td colSpan={5} className="py-6 text-center font-sans text-slate-500">No investment account or holdings are connected.</td></tr>
+              ) : userInvestments.map((inv) => (
                 <tr key={inv.id} className="hover:bg-slate-50/50 dark:hover:bg-white/[0.02]">
                   <td className="py-3.5 font-sans font-bold text-slate-900 dark:text-white">
                     {inv.productName}
@@ -266,15 +255,15 @@ export const InvestmentsScreen: React.FC = () => {
           <div className="space-y-4 pt-1 text-xs">
             <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-center">
               <span className="text-[10px] uppercase font-bold text-slate-500">
-                Annualized Compound Yield
+                Investment information
               </span>
               <p className="text-3xl font-black font-mono text-emerald-600 dark:text-emerald-400 mt-0.5">
-                +{selectedProduct.projectedReturn}% APY
+                Not available
               </p>
             </div>
 
             <GlassInput
-              label={`Number of Units (Price: ${selectedProduct.currency} ${selectedProduct.pricePerUnit} / unit)`}
+              label="Requested units (no live offer or pricing is available)"
               type="number"
               value={unitsToBuy}
               onChange={(e) => setUnitsToBuy(e.target.value)}
@@ -282,18 +271,15 @@ export const InvestmentsScreen: React.FC = () => {
 
             <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/10 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-slate-500">Total Investment Cost</span>
+                <span className="text-slate-500">Pricing</span>
                 <span className="font-bold font-mono text-slate-900 dark:text-white text-sm">
-                  {selectedProduct.currency}{' '}
-                  {((parseInt(unitsToBuy) || 0) * selectedProduct.pricePerUnit).toLocaleString('en-US', {
-                    minimumFractionDigits: 2,
-                  })}
+                  Unavailable
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-500">Settlement Currency</span>
+                <span className="text-slate-500">Settlement</span>
                 <span className="font-bold text-slate-900 dark:text-white">
-                  {selectedProduct.currency} Wallet
+                  Unavailable
                 </span>
               </div>
             </div>
@@ -301,11 +287,10 @@ export const InvestmentsScreen: React.FC = () => {
             <GlassButton
               variant="primary"
               size="lg"
-              loading={isInvesting}
               onClick={handleExecuteInvestment}
               className="w-full mt-2"
             >
-              Confirm Subscription
+              Investment unavailable
             </GlassButton>
           </div>
         )}

@@ -32,31 +32,18 @@ export const LoansScreen: React.FC = () => {
   // Application modal
   const [applyModalOpen, setApplyModalOpen] = useState(false);
   const [purpose, setPurpose] = useState('Business Expansion');
-  const [isApplying, setIsApplying] = useState(false);
 
   // Repay modal
   const [repayModalOpen, setRepayModalOpen] = useState(false);
   const [repayAmount, setRepayAmount] = useState('89583');
-  const [isRepaying, setIsRepaying] = useState(false);
-
-  // Calculate monthly installment: interest is 2% per month
-  const monthlyInterestRate = 0.02;
-  const totalInterest = calcAmount * monthlyInterestRate * calcDuration;
-  const totalPayable = calcAmount + totalInterest;
-  const monthlyInstallment = totalPayable / calcDuration;
 
   const activeLoan = loanEligibility.currentActiveLoan;
 
   const handleApplySubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsApplying(true);
     playHaptic('medium');
-
-    setTimeout(() => {
-      applyForLoan(calcAmount, calcDuration, purpose);
-      setIsApplying(false);
-      setApplyModalOpen(false);
-    }, 1000);
+    applyForLoan(calcAmount, calcDuration, purpose);
+    setApplyModalOpen(false);
   };
 
   const handleRepaySubmit = (e: React.FormEvent) => {
@@ -64,14 +51,9 @@ export const LoansScreen: React.FC = () => {
     const amt = parseFloat(repayAmount);
     if (amt <= 0) return;
 
-    setIsRepaying(true);
     playHaptic('medium');
-
-    setTimeout(() => {
-      repayActiveLoan(amt);
-      setIsRepaying(false);
-      setRepayModalOpen(false);
-    }, 800);
+    repayActiveLoan(amt);
+    setRepayModalOpen(false);
   };
 
   return (
@@ -86,7 +68,7 @@ export const LoansScreen: React.FC = () => {
           Digital Loans & Prime Credit
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-          Instant disbursement directly into your NGN wallet with competitive 2.0% monthly interest
+          No loan provider is connected. Rates, eligibility, applications, repayment terms, and disbursements are unavailable.
         </p>
       </div>
 
@@ -99,20 +81,19 @@ export const LoansScreen: React.FC = () => {
               Credit Score
             </span>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
-              Tier 1 Prime
+              Sample data
             </span>
           </div>
 
           <div className="flex items-baseline gap-2">
             <span className="text-4xl font-black font-mono text-emerald-500">
-              {loanEligibility.creditScore}
+              N/A
             </span>
             <span className="text-xs text-slate-400">/ 850</span>
           </div>
 
           <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-            Excellent credit rating. You qualify for instant pre-approved credit lines up to ₦
-            {loanEligibility.maxAmount.toLocaleString()} without collateral.
+            Credit assessment is unavailable. No score, eligibility decision, or credit offer is available in this preview.
           </p>
         </div>
 
@@ -131,7 +112,7 @@ export const LoansScreen: React.FC = () => {
               </span>
             ) : (
               <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-white/10 text-slate-300">
-                NO OUTSTANDING LOAN
+                No connected loan data
               </span>
             )}
           </div>
@@ -154,7 +135,7 @@ export const LoansScreen: React.FC = () => {
                 <div>
                   <span className="text-slate-400 block">Next Installment</span>
                   <span className="text-lg font-bold font-mono text-amber-400">
-                    ₦{activeLoan.monthlyInstallment.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                  Not available
                   </span>
                 </div>
                 <div>
@@ -168,14 +149,14 @@ export const LoansScreen: React.FC = () => {
               {/* Repay Action Button */}
               <div className="pt-2 flex items-center justify-between">
                 <span className="text-xs text-slate-400">
-                  Repaying early boosts your credit score and unlocks lower interest rates.
+                  Repayment terms and credit effects are unavailable in this preview.
                 </span>
                 <GlassButton
                   variant="gold"
                   size="sm"
                   onClick={() => {
                     playHaptic('light');
-                    setRepayAmount(Math.round(activeLoan.monthlyInstallment).toString());
+                  Not available
                     setRepayModalOpen(true);
                   }}
                 >
@@ -186,7 +167,7 @@ export const LoansScreen: React.FC = () => {
           ) : (
             <div className="py-4 space-y-2">
               <p className="text-sm text-slate-300">
-                You have zero active debt. Use the calculator below to request instant disbursement.
+                No live loan account is connected. Applications and disbursements are unavailable.
               </p>
             </div>
           )}
@@ -202,11 +183,11 @@ export const LoansScreen: React.FC = () => {
               <span>Loan Estimator</span>
             </div>
             <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-              Instant Credit Calculator
+              Loan calculator preview
             </h2>
           </div>
           <span className="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-            2.0% Monthly Flat
+            Terms unavailable
           </span>
         </div>
 
@@ -270,22 +251,22 @@ export const LoansScreen: React.FC = () => {
           <div className="p-6 rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 flex flex-col justify-between space-y-4">
             <div className="space-y-3 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-slate-500">Monthly Repayment</span>
+                <span className="text-slate-500">Repayment estimate</span>
                 <span className="text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400">
-                  ₦{monthlyInstallment.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                  Not available
                   <span className="text-xs font-normal text-slate-400"> / mo</span>
                 </span>
               </div>
               <div className="flex items-center justify-between py-1 border-t border-slate-200/60 dark:border-white/5">
-                <span className="text-slate-500">Total Interest (2.0%/mo)</span>
+                <span className="text-slate-500">Interest rate</span>
                 <span className="font-bold font-mono text-slate-900 dark:text-white">
-                  ₦{totalInterest.toLocaleString()}
+                  Not available
                 </span>
               </div>
               <div className="flex items-center justify-between py-1 border-t border-slate-200/60 dark:border-white/5">
-                <span className="text-slate-500">Total Payable Amount</span>
+                <span className="text-slate-500">Total repayable</span>
                 <span className="font-bold font-mono text-slate-900 dark:text-white">
-                  ₦{totalPayable.toLocaleString()}
+                  Not available
                 </span>
               </div>
             </div>
@@ -299,7 +280,7 @@ export const LoansScreen: React.FC = () => {
               }}
               className="w-full"
             >
-              Apply for ₦{calcAmount.toLocaleString()} Instant Loan
+              Loan application unavailable
             </GlassButton>
           </div>
         </div>
@@ -309,8 +290,8 @@ export const LoansScreen: React.FC = () => {
       <GlassModal
         isOpen={applyModalOpen}
         onClose={() => setApplyModalOpen(false)}
-        title="Instant Loan Application"
-        subtitle={`Requesting ₦${calcAmount.toLocaleString()} for ${calcDuration} months`}
+        title="Loan request unavailable"
+        subtitle="Loan requests are unavailable in this preview."
         maxWidth="md"
       >
         <form onSubmit={handleApplySubmit} className="space-y-4 pt-1 text-xs">
@@ -332,10 +313,10 @@ export const LoansScreen: React.FC = () => {
 
           <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 space-y-1">
             <p className="font-bold text-emerald-600 dark:text-emerald-400">
-              Pre-Approved Instant Credit
+              Loan services unavailable
             </p>
             <p className="text-[11px] text-slate-500 dark:text-slate-400">
-              Because your credit score is {loanEligibility.creditScore}, funds will disburse automatically into your primary NGN account immediately upon signing.
+              No credit decision or loan disbursement is available. This form will not submit an application.
             </p>
           </div>
 
@@ -343,10 +324,9 @@ export const LoansScreen: React.FC = () => {
             variant="primary"
             size="lg"
             type="submit"
-            loading={isApplying}
             className="w-full"
           >
-            Sign & Accept Disbursement
+            Loan application unavailable
           </GlassButton>
         </form>
       </GlassModal>
@@ -372,7 +352,6 @@ export const LoansScreen: React.FC = () => {
             variant="gold"
             size="lg"
             type="submit"
-            loading={isRepaying}
             className="w-full"
           >
             Authorize Repayment

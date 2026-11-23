@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { consumeOtpAnd, setSessionCookie, allowAuthAttempt } from "@/lib/auth";
 import { emailChallengeSchema } from "@/lib/validation";
+import { isSameOriginMutation } from "@/lib/security";
 
 export async function POST(request: Request) {
+  if (!isSameOriginMutation(request)) return NextResponse.json({ error: { code: "INVALID_ORIGIN", message: "This request origin is not allowed." } }, { status: 403 });
   const parsed = emailChallengeSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: { code: "INVALID_INPUT", message: "Enter your email and six-digit verification code." } }, { status: 400 });
   const email = parsed.data.email.toLowerCase();

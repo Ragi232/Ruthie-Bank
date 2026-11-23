@@ -46,18 +46,18 @@ export const RuthieAIScreen: React.FC = () => {
             <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
               <span>Ruthie AI Intelligence</span>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-extrabold border border-emerald-400/30">
-                GPT-4o FINTECH
+                NOT CONNECTED
               </span>
             </h2>
             <p className="text-[11px] text-slate-500 dark:text-slate-400">
-              Private financial copilot connected to your real-time bank ledger
+              Account data and AI services are not connected.
             </p>
           </div>
         </div>
 
         <div className="hidden sm:flex items-center gap-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
           <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" />
-          <span>Listening & Active</span>
+          <span>Unavailable</span>
         </div>
       </div>
 

@@ -134,7 +134,7 @@ export const SavingsScreen: React.FC = () => {
           <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
             Active Vaults & Goals ({savingsGoals.length})
           </h2>
-          <span className="text-xs text-slate-400">All deposits NDIC-insured</span>
+          <span className="text-xs text-slate-400">Sample goals only · no funds are held</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5">
@@ -161,7 +161,7 @@ export const SavingsScreen: React.FC = () => {
                         </span>
                       )}
                       <span className="text-xs font-bold font-mono text-emerald-600 dark:text-emerald-400">
-                        {goal.interestRate}% APY
+                        Sample goal
                       </span>
                     </div>
                     <h3 className="text-base font-bold text-slate-900 dark:text-white">
@@ -244,13 +244,13 @@ export const SavingsScreen: React.FC = () => {
 
           <div className="space-y-1.5">
             <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 ml-1">
-              Category & Yield
+              Goal type (preview)
             </label>
             <div className="grid grid-cols-3 gap-2">
               {[
-                { id: 'vault', label: 'Ruthie Vault', yield: '18.5% APY' },
-                { id: 'target', label: 'Target Goal', yield: '15.0% APY' },
-                { id: 'flexi', label: 'Flexi Anytime', yield: '12.0% APY' },
+                { id: 'vault', label: 'Ruthie Vault' },
+                { id: 'target', label: 'Target Goal' },
+                { id: 'flexi', label: 'Flexi Anytime' },
               ].map((c) => (
                 <button
                   key={c.id}
@@ -264,7 +264,7 @@ export const SavingsScreen: React.FC = () => {
                 >
                   <p className="text-xs font-bold leading-tight">{c.label}</p>
                   <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5">
-                    {c.yield}
+                    Demo only
                   </p>
                 </button>
               ))}
@@ -297,7 +297,7 @@ export const SavingsScreen: React.FC = () => {
           </div>
 
           <GlassButton variant="primary" size="lg" type="submit" className="w-full mt-2">
-            Create Plan & Start Earning
+            Create Preview Goal
           </GlassButton>
         </form>
       </GlassModal>
@@ -307,7 +307,7 @@ export const SavingsScreen: React.FC = () => {
         isOpen={depositModalOpen}
         onClose={() => setDepositModalOpen(false)}
         title={`Deposit to ${selectedGoal?.title}`}
-        subtitle={`Funds will earn ${selectedGoal?.interestRate}% APY compounding daily`}
+        subtitle="Savings are unavailable. No funds will be moved or earn interest."
         maxWidth="sm"
       >
         <form onSubmit={handleDepositSubmit} className="space-y-4 pt-1">

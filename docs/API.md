@@ -1,36 +1,31 @@
-# API contract (Phase 1)
+# API reference
 
-All endpoints are versioned under `/api` as the backend grows. JSON requests will be validated with Zod and errors will use a stable `{ error: { code, message, requestId } }` shape. Authentication and financial routes are not implemented yet.
+The current API is implemented as Next.js App Router handlers under `/api`. Responses are JSON. Errors currently use `{ "error": { "code": "...", "message": "..." } }`; request IDs and a formal OpenAPI schema are not implemented.
 
-## Available
+## Health
 
 ### `GET /api/health`
 
-Returns service readiness metadata, for example:
+Performs a database query. Returns `200` with `status: "ok"` and `database: "ready"` when PostgreSQL is reachable; returns `503` when it is not. `financialOperations` is always `"unavailable"`.
 
-```json
-{"status":"ok","environment":"sandbox","financialOperations":"sandbox-unavailable"}
-```
-
-## Authentication endpoints
+## Authentication
 
 | Method | Path | Behavior |
 | --- | --- | --- |
-| `POST` | `/api/auth/register` | Validates and creates a pending profile; creates a short-lived email OTP challenge. OTP delivery is unavailable until an adapter is configured. |
-| `POST` | `/api/auth/verify-email` | Consumes a matching, unexpired email challenge, activates the profile, creates an NGN wallet, and sets a session cookie. |
-| `POST` | `/api/auth/login` | Verifies the password and active/verified account state, then sets an opaque HTTP-only session cookie. |
-| `POST` | `/api/auth/logout` | Revokes the current session and clears its cookie. |
-| `GET` | `/api/auth/session` | Returns the authenticated profile or `401`. |
-| `POST` | `/api/auth/password-reset/request` | Always returns a generic `202`; stores a reset challenge only for an existing email. |
-| `POST` | `/api/auth/password-reset` | Consumes a valid reset challenge, updates the password, and revokes all sessions. |
+| `POST` | `/api/auth/register` | Validates a profile, then atomically creates a pending user and email OTP challenge. Email delivery is unavailable. |
+| `POST` | `/api/auth/verify-email` | Validates and consumes a single-use OTP, activates the user, creates an account and NGN wallet, then issues a session cookie in the same request flow. |
+| `POST` | `/api/auth/login` | Checks password, active status, and verified email, then issues an opaque HTTP-only session cookie. |
+| `POST` | `/api/auth/logout` | Revokes the current session and expires its cookie. |
+| `GET` | `/api/auth/session` | Returns the verified session profile or `401`; response is `Cache-Control: no-store`. |
+| `POST` | `/api/auth/password-reset/request` | Returns a generic `202`; stores a challenge only for an existing user. Delivery is unavailable. |
+| `POST` | `/api/auth/password-reset` | Consumes a valid reset challenge, updates the password, and revokes all user sessions. |
 
-Development may expose an OTP only when both `APP_ENV=sandbox` and `EXPOSE_DEV_OTP=true` are set and `NODE_ENV` is not production. No OTP is delivered through a real provider yet.
+All authentication POST handlers reject a present `Origin` that does not match `APP_URL` or `NEXT_PUBLIC_APP_URL` (or the request host when no configured URL exists). Requests without an `Origin` are allowed for non-browser clients. Deployments must keep browser endpoints same-origin and protect non-browser access independently.
 
-## Planned conventions
+Auth rate limiting uses hashed identity and forwarded-IP buckets in PostgreSQL. Configure a trusted reverse proxy that overwrites `X-Forwarded-For`; direct untrusted forwarding headers can defeat IP-based controls. OTPs expire after ten minutes and allow at most five attempts. A development OTP is returned only when `APP_ENV=sandbox`, `NODE_ENV` is not production, and `EXPOSE_DEV_OTP=true`.
 
-- Auth endpoints are rate-limited using hashed IP/identity buckets, generic for password-reset account discovery, and use secure session cookies.
-- Money movement: authenticated request, step-up confirmation, UUID `Idempotency-Key`, server-side limit/risk check, transactionally posted ledger entries, and a status response that distinguishes pending from final.
-- Provider callbacks: signed webhook endpoint, replay protection, durable event record, idempotent processing, reconciliation.
-- Admin APIs: separate authorization policy checked on every server request, audit event on privileged changes.
+## Financial, payment, support, AI, and admin operations
 
-An OpenAPI document will be generated when the concrete endpoints are introduced so its schemas match implemented behavior.
+No API routes exist for money movement, customer wallet/ledger reads, provider payments, KYC, support, AI, or administrative operations. The browser preview's corresponding context actions return unavailable and do not mutate balances or create successful transactions. Do not infer an operation from UI state.
+
+The payment port and integer minor-unit/journal validation helpers are foundations only. There is no provider adapter, ledger posting service, webhook endpoint, provider reconciliation, or live credential. See [provider evaluation](PROVIDER_EVALUATION.md).

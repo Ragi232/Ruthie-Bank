@@ -83,50 +83,13 @@ export const WithdrawalsScreen: React.FC = () => {
 
   const handleAccountChange = (val: string) => {
     setAccountNumber(val);
-    if (val.length === 10) {
-      setIsVerifyingAccount(true);
-      playHaptic('light');
-      setTimeout(() => {
-        setIsVerifyingAccount(false);
-        setResolvedName('Ruthie O. Adebayo');
-      }, 600);
-    } else {
-      setResolvedName('');
-    }
+    setIsVerifyingAccount(false);
+    setResolvedName("");
   };
-
   const handleStartWithdrawal = (e: React.FormEvent) => {
     e.preventDefault();
-    if (numAmount <= 0) {
-      showDynamicIsland({
-        title: 'Invalid Amount',
-        subtitle: 'Enter a valid amount to withdraw',
-        type: 'security',
-      });
-      return;
-    }
-    if (numAmount > ngnWallet.availableBalance) {
-      showDynamicIsland({
-        title: 'Insufficient Balance',
-        subtitle: `Available balance: ₦${ngnWallet.availableBalance.toLocaleString()}`,
-        type: 'security',
-      });
-      return;
-    }
-    if (numAmount > remainingLimit) {
-      showDynamicIsland({
-        title: 'Limit Exceeded',
-        subtitle: `Maximum daily remaining limit is ₦${remainingLimit.toLocaleString()}`,
-        type: 'security',
-      });
-      return;
-    }
-
-    playHaptic('medium');
-    setPin('');
-    setPinModalOpen(true);
+    showDynamicIsland({ title: "Withdrawal unavailable", subtitle: "No bank or ATM provider is connected. No withdrawal was requested.", type: "security" });
   };
-
   const handlePinSubmit = async (enteredPin: string) => {
     setPin(enteredPin);
     if (enteredPin.length === 6) {
@@ -174,7 +137,7 @@ export const WithdrawalsScreen: React.FC = () => {
             Withdrawals & ATM Cash Out
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            Cardless cash extraction at 25,000+ partner ATMs nationwide or direct external settlement
+            Withdrawal providers and ATM networks are not connected.
           </p>
         </div>
 
@@ -455,7 +418,7 @@ export const WithdrawalsScreen: React.FC = () => {
           <div className="absolute inset-x-4 top-1/2 h-0.5 bg-emerald-400 shadow-[0_0_10px_#10b981] animate-bounce" />
         </div>
         <p className="text-xs text-slate-400">
-          Select &quot;Ruthie Touchless QR Cash&quot; on ATM screen to dispense instantly without touching buttons.
+          No ATM network or QR cash service is connected to this preview.
         </p>
         <GlassButton
           variant="glass"

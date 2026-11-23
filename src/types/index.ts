@@ -81,7 +81,7 @@ export type TransactionType =
   | 'LOAN_REPAYMENT'
   | 'BOOKING';
 
-export type TransactionStatus = 'SUCCEEDED' | 'PENDING' | 'FAILED' | 'REVERSED';
+export type TransactionStatus = 'SUCCEEDED' | 'PENDING' | 'FAILED' | 'REVERSED' | 'PREVIEW';
 
 export interface TransactionRecord {
   id: string;

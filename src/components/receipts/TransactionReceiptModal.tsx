@@ -8,7 +8,6 @@ import { CheckCircle2, Download, Share2, Copy, Check, ShieldCheck } from 'lucide
 
 export const TransactionReceiptModal: React.FC = () => {
   const { activeReceipt, setActiveReceipt, playHaptic, showDynamicIsland } = useBank();
-  const [downloading, setDownloading] = useState(false);
   const [copiedRef, setCopiedRef] = useState(false);
 
   if (!activeReceipt) return null;
@@ -17,18 +16,13 @@ export const TransactionReceiptModal: React.FC = () => {
     navigator.clipboard.writeText(activeReceipt.reference);
     setCopiedRef(true);
     playHaptic('success');
-    showDynamicIsland('Copied', 'Transaction reference code copied', 'success');
+    showDynamicIsland('Copied', 'Sample reference copied. It is not a provider transaction reference.', 'security');
     setTimeout(() => setCopiedRef(false), 2000);
   };
 
   const handleDownload = () => {
     playHaptic('medium');
-    setDownloading(true);
-    setTimeout(() => {
-      setDownloading(false);
-      playHaptic('success');
-      showDynamicIsland('Receipt Saved', `Receipt ${activeReceipt.reference}.pdf downloaded`, 'success');
-    }, 1200);
+    showDynamicIsland({ title: 'Receipt download unavailable', subtitle: 'This sample record is not proof of payment or a settled transaction.', type: 'security' });
   };
 
   const handleShare = () => {
@@ -36,13 +30,13 @@ export const TransactionReceiptModal: React.FC = () => {
     if (typeof navigator !== 'undefined' && navigator.share) {
       navigator.share({
         title: `Ruthie Bank Receipt - ${activeReceipt.reference}`,
-        text: `Transaction of ${activeReceipt.currency} ${activeReceipt.amount} to ${activeReceipt.recipientOrSender} was successful.`,
+        text: `Sample transaction record only. This is not proof of payment. ${activeReceipt.currency} ${activeReceipt.amount} to ${activeReceipt.recipientOrSender}.`,
       }).catch(() => {});
     } else {
       navigator.clipboard.writeText(
-        `Ruthie Bank Receipt\nRef: ${activeReceipt.reference}\nAmount: ${activeReceipt.currency} ${activeReceipt.amount}\nTo: ${activeReceipt.recipientOrSender}\nStatus: ${activeReceipt.status}`
+        `Ruthie Bank Sample Record\nRef: ${activeReceipt.reference}\nAmount: ${activeReceipt.currency} ${activeReceipt.amount}\nTo: ${activeReceipt.recipientOrSender}\nStatus: SAMPLE ONLY`
       );
-      showDynamicIsland('Receipt Copied', 'Receipt summary copied to clipboard', 'success');
+      showDynamicIsland('Sample summary copied', 'This summary is not proof of payment or settlement.', 'security');
     }
   };
 
@@ -115,7 +109,7 @@ export const TransactionReceiptModal: React.FC = () => {
             <span className="text-slate-500 dark:text-slate-400">Clearing Status</span>
             <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              Sandbox Reconciled
+              Not settled or reconciled
             </span>
           </div>
 
@@ -140,10 +134,9 @@ export const TransactionReceiptModal: React.FC = () => {
           <GlassButton
             variant="glass"
             onClick={handleDownload}
-            loading={downloading}
             icon={<Download size={15} />}
           >
-            Download PDF
+            Download unavailable
           </GlassButton>
 
           <GlassButton

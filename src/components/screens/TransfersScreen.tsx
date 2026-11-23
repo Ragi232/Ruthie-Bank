@@ -39,8 +39,6 @@ export const TransfersScreen: React.FC = () => {
   const [selectedCurrency, setSelectedCurrency] = useState<CurrencyCode>('NGN');
 
   // Verification state
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [verifiedName, setVerifiedName] = useState<string | null>(null);
 
   // Flow modals
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
@@ -63,47 +61,23 @@ export const TransfersScreen: React.FC = () => {
 
   const activeWallet = wallets.find((w) => w.currency === selectedCurrency) || wallets[0];
   const numAmount = parseFloat(amount) || 0;
-  const fee = transferType === 'ruthie' ? 0 : transferType === 'international' ? 25.0 : 0.0;
 
-  // Auto-resolve account number simulation
   const handleAccountChange = (val: string) => {
     setAccountNumber(val);
-    if (val.length === 10) {
-      setIsVerifying(true);
-      playHaptic('light');
-      setTimeout(() => {
-        setIsVerifying(false);
-        const resolved = 'Olumide Fashola';
-        setVerifiedName(resolved);
-        setRecipientName(resolved);
-      }, 700);
-    } else {
-      setVerifiedName(null);
-    }
+    setRecipientName('');
   };
 
-  // Auto-resolve tag simulation
   const handleTagChange = (val: string) => {
     const formatted = val.startsWith('@') ? val : `@${val}`;
     setRuthieTag(formatted);
-    if (formatted.length >= 4) {
-      setIsVerifying(true);
-      setTimeout(() => {
-        setIsVerifying(false);
-        const resolved = formatted === '@amina_y' ? 'Amina Yusuf' : 'Chukwuma Eze';
-        setVerifiedName(resolved);
-        setRecipientName(resolved);
-      }, 500);
-    } else {
-      setVerifiedName(null);
-    }
+    setRecipientName('');
   };
 
   // Pick Beneficiary
   const handleSelectBeneficiary = (b: typeof beneficiaries[0]) => {
     playHaptic('light');
     setRecipientName(b.name);
-    setVerifiedName(b.name);
+    setRecipientName('');
     if (b.isRuthieTag && b.tag) {
       setTransferType('ruthie');
       setRuthieTag(b.tag);
@@ -116,16 +90,7 @@ export const TransfersScreen: React.FC = () => {
 
   const handleStartReview = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!recipientName || numAmount <= 0) {
-      showDynamicIsland('Check Details', 'Please enter a valid amount and recipient', 'security');
-      return;
-    }
-    if (numAmount > activeWallet.availableBalance) {
-      showDynamicIsland('Insufficient Funds', `You only have ${activeWallet.symbol}${activeWallet.availableBalance.toLocaleString()}`, 'security');
-      return;
-    }
-    playHaptic('medium');
-    setReviewModalOpen(true);
+    showDynamicIsland({ title: 'Transfer unavailable', subtitle: 'No transfer provider or beneficiary verification is connected. No funds were moved.', type: 'security' });
   };
 
   const handleConfirmReview = () => {
@@ -141,13 +106,12 @@ export const TransfersScreen: React.FC = () => {
       playHaptic('medium');
 
       const res = await transferMoney({
-        recipientName: verifiedName || recipientName,
+        recipientName: recipientName || 'Unavailable',
         accountOrTag: transferType === 'ruthie' ? ruthieTag : accountNumber,
         bankName: transferType === 'ruthie' ? 'Ruthie Bank' : bankName,
         amount: numAmount,
         currency: selectedCurrency,
         description,
-        fee,
       });
 
       setIsSubmitting(false);
@@ -158,7 +122,6 @@ export const TransfersScreen: React.FC = () => {
         setDescription('');
         setAccountNumber('');
         setRuthieTag('');
-        setVerifiedName(null);
       }
     }
   };
@@ -175,7 +138,7 @@ export const TransfersScreen: React.FC = () => {
           Transfer & Send Money
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-          Instant zero-fee Ruthie transfers, NIP local interbank, and SWIFT international rails
+          Transfer rails are not connected. No transfer or beneficiary verification is available.
         </p>
       </div>
 
@@ -195,7 +158,7 @@ export const TransfersScreen: React.FC = () => {
         activeTab={transferType}
         onChange={(t) => {
           setTransferType(t);
-          setVerifiedName(null);
+          setRecipientName('');
         }}
       />
 
@@ -301,30 +264,16 @@ export const TransfersScreen: React.FC = () => {
           )}
         </div>
 
-        {/* Resolved Account Name Banner */}
-        {isVerifying ? (
-          <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs text-slate-500">
-            <span className="w-3 h-3 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" />
-            <span>Verifying beneficiary details with Nigerian Inter-Bank Settlement System...</span>
-          </div>
-        ) : verifiedName ? (
-          <div className="flex items-center justify-between px-4 py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-xs">
-            <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold">
-              <UserCheck size={16} />
-              <span>Verified Account Name: {verifiedName}</span>
-            </div>
-            <span className="text-[10px] uppercase font-bold text-emerald-500 px-2 py-0.5 rounded-full bg-emerald-500/20">
-              Validated
-            </span>
-          </div>
-        ) : null}
+        <div role="status" className="rounded-xl bg-amber-500/10 border border-amber-500/20 px-3 py-2 text-xs text-amber-800 dark:text-amber-200">
+          Beneficiary names are not verified. Do not use sample saved beneficiary details.
+        </div>
 
         {/* Amount Entry & Currency Selection */}
         <div className="p-5 rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 space-y-3">
           <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
             <span>Enter Amount</span>
             <span>
-              Available: {activeWallet.symbol}
+              Sample balance: {activeWallet.symbol}
               {activeWallet.availableBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </span>
           </div>
@@ -408,7 +357,7 @@ export const TransfersScreen: React.FC = () => {
             <div className="flex items-center justify-between">
               <span className="text-slate-500">Recipient</span>
               <span className="font-bold text-slate-900 dark:text-white">
-                {verifiedName || recipientName}
+                {recipientName || 'Unavailable'}
               </span>
             </div>
             <div className="flex items-center justify-between">

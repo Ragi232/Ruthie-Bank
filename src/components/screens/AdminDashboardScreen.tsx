@@ -52,14 +52,17 @@ export const AdminDashboardScreen: React.FC = () => {
     e.preventDefault();
     playHaptic('success');
     showDynamicIsland({
-      title: 'Exchange Rates Updated',
-      subtitle: 'New institutional rates published across all client nodes',
-      type: 'success',
+      title: 'Administrator action unavailable',
+      subtitle: 'This preview has no server-side admin or rate-management API. No changes were made.',
+      type: 'security',
     });
   };
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-8 pb-28 md:pb-12">
+      <div role="status" className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-700 dark:text-amber-200">
+        Preview only: customer records, ledger figures, KYC states, and metrics below are sample data. Admin actions are disabled because no server-side admin API exists.
+      </div>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-white/10 pb-4">
         <div>
@@ -70,7 +73,7 @@ export const AdminDashboardScreen: React.FC = () => {
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
             <span>Admin Management Console</span>
             <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/30">
-              SUPER ADMIN
+              PREVIEW ONLY
             </span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
@@ -280,7 +283,7 @@ export const AdminDashboardScreen: React.FC = () => {
                     <td className="py-3.5 px-3 text-slate-400 font-mono">{tx.timestamp}</td>
                     <td className="py-3.5 px-3 text-right">
                       <span className="font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                        {tx.status}
+                        Sample record
                       </span>
                     </td>
                   </tr>
@@ -337,8 +340,8 @@ export const AdminDashboardScreen: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => {
-                      playHaptic('success');
-                      showDynamicIsland('KYC Approved', `${k.name} upgraded to Tier ${k.tierRequested}`, 'success');
+                      playHaptic('warning');
+                      showDynamicIsland('KYC review unavailable', 'This sample record was not reviewed or changed.', 'security');
                     }}
                     className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md transition-all active:scale-95 cursor-pointer"
                   >
@@ -347,7 +350,7 @@ export const AdminDashboardScreen: React.FC = () => {
                   <button
                     onClick={() => {
                       playHaptic('warning');
-                      showDynamicIsland('KYC Rejected', 'Requested resubmission of clearer document', 'security');
+                      showDynamicIsland('KYC review unavailable', 'This sample record was not reviewed or changed.', 'security');
                     }}
                     className="px-4 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 font-semibold text-xs border border-rose-500/20 transition-all cursor-pointer"
                   >

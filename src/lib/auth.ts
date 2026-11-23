@@ -42,8 +42,12 @@ export function hashOtp(code: string, userId: string, purpose: string) {
 }
 
 export async function createOtpChallenge(userId: string, purpose: "VERIFY_EMAIL" | "RESET_PASSWORD" | "LOGIN_STEP_UP") {
+  return prisma.$transaction((tx) => createOtpChallengeInTransaction(tx, userId, purpose));
+}
+
+export async function createOtpChallengeInTransaction(tx: Prisma.TransactionClient, userId: string, purpose: "VERIFY_EMAIL" | "RESET_PASSWORD" | "LOGIN_STEP_UP") {
   const code = String(randomBytes(4).readUInt32BE(0) % 1_000_000).padStart(6, "0");
-  const challenge = await prisma.otpChallenge.create({
+  const challenge = await tx.otpChallenge.create({
     data: { userId, purpose, codeHash: hashOtp(code, userId, purpose), expiresAt: new Date(Date.now() + 10 * 60 * 1000) },
   });
   // Only expose a challenge code when a developer explicitly opts into local testing.
@@ -79,7 +83,7 @@ export async function getCurrentUser() {
   if (!token) return null;
   const session = await prisma.authSession.findUnique({ where: { tokenHash: hashOpaque(token) }, include: { user: true } });
   if (!session || session.revokedAt || session.expiresAt <= new Date() || session.user.status !== "ACTIVE") return null;
-  return { id: session.user.id, email: session.user.email, firstName: session.user.firstName, lastName: session.user.lastName };
+  return { id: session.user.id, email: session.user.email, phone: session.user.phone, firstName: session.user.firstName, lastName: session.user.lastName };
 }
 
 export async function revokeCurrentSession() {
@@ -90,7 +94,7 @@ export async function revokeCurrentSession() {
 }
 
 export async function allowAuthAttempt(request: Request, identity: string) {
-  const forwarded = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
   const windowMs = 15 * 60 * 1000;
   const windowStart = new Date(Math.floor(Date.now() / windowMs) * windowMs);
   const identifiers = [hashOpaque(`ip:${forwarded}`), hashOpaque(`identity:${identity.toLowerCase()}`)];

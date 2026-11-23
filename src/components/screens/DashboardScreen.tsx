@@ -207,7 +207,7 @@ export const DashboardScreen: React.FC = () => {
 
           <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
             <ShieldCheck size={14} />
-            <span>Tier 3 Verified</span>
+            <span>Preview profile</span>
           </div>
         </div>
       </header>
@@ -358,7 +358,7 @@ export const DashboardScreen: React.FC = () => {
                 Recent Activity
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Audited real-time ledger entries
+                Sample transaction records
               </p>
             </div>
             <button

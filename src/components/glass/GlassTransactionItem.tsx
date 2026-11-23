@@ -59,6 +59,12 @@ export const GlassTransactionItem: React.FC<GlassTransactionItemProps> = ({ tran
             Failed
           </span>
         );
+      case 'PREVIEW':
+        return (
+          <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300">
+            Sample
+          </span>
+        );
       case 'SUCCEEDED':
       default:
         return null;

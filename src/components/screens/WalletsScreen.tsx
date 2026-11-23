@@ -63,14 +63,6 @@ export const WalletsScreen: React.FC = () => {
       showDynamicIsland('Invalid Amount', 'Enter an amount greater than 0', 'security');
       return;
     }
-    if (numFrom > fromWallet.availableBalance) {
-      showDynamicIsland(
-        'Insufficient Balance',
-        `Available: ${fromWallet.symbol}${fromWallet.availableBalance.toLocaleString()}`,
-        'security'
-      );
-      return;
-    }
     playHaptic('medium');
     setConvertModalOpen(true);
   };
@@ -105,7 +97,7 @@ export const WalletsScreen: React.FC = () => {
             Global Wallets & FX
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            Hold, receive, and swap foreign currencies at institutional interbank rates
+            Preview currency cards. No wallets, receiving accounts, exchange quotes, or conversions are connected.
           </p>
         </div>
 
@@ -138,10 +130,10 @@ export const WalletsScreen: React.FC = () => {
         <Info size={18} className="text-amber-500 shrink-0 mt-0.5" />
         <div className="space-y-0.5">
           <p className="font-semibold text-amber-950 dark:text-amber-100">
-            Development Sandbox — Indicative Interbank FX Rates
+            Sample data only
           </p>
           <p className="opacity-90 leading-relaxed text-[11px]">
-            Currency swaps and foreign accounts are simulated against our sandbox treasury ledger. Wholesale FX liquidity rails (Bloomberg FXGO, LMAX Exchange) are operating in preview mode without real reserve movement.
+            Balances and exchange figures are illustrative. No treasury ledger or FX provider is connected, and no conversion can be completed.
           </p>
         </div>
       </div>
@@ -174,15 +166,15 @@ export const WalletsScreen: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-                Institutional FX Swap Desk
+                Sample FX Estimate
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                0.00% Spread · Instant Settlement · Guaranteed Quote
+                Sample estimate only; no executable quote or settlement
               </p>
             </div>
             <div className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
               <ShieldCheck size={14} />
-              <span>Real-Time Rate</span>
+              <span>Not a live rate</span>
             </div>
           </div>
 
@@ -193,7 +185,7 @@ export const WalletsScreen: React.FC = () => {
               <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
                 <span>You Send</span>
                 <span>
-                  Available: {fromWallet.symbol}
+                  Sample balance: {fromWallet.symbol}
                   {fromWallet.availableBalance.toLocaleString()}
                 </span>
               </div>
@@ -369,7 +361,7 @@ export const WalletsScreen: React.FC = () => {
               navigator.clipboard.writeText(
                 `${activeWallet.currency} Requisites:\nAccount: ${activeWallet.accountNumber || activeWallet.iban}\nBank: Ruthie Bank International`
               );
-              showDynamicIsland('Details Copied', `${activeWallet.currency} wire instructions copied`, 'success');
+              showDynamicIsland('Sample details copied', 'This is not a receiving account or wire instruction.', 'security');
             }}
             className="w-full"
           >
@@ -441,7 +433,7 @@ export const WalletsScreen: React.FC = () => {
           <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-800 dark:text-amber-300">
             <AlertCircle size={15} className="text-amber-500 shrink-0 mt-0.5" />
             <p>
-              Sandbox Preview: This transaction updates your simulated wallet balances in real-time. Live banking liquidity providers are not debited.
+              Currency conversion is unavailable. These wallet balances are sample data and no exchange will be executed.
             </p>
           </div>
 
@@ -470,12 +462,12 @@ export const WalletsScreen: React.FC = () => {
         isOpen={addWalletModalOpen}
         onClose={() => setAddWalletModalOpen(false)}
         title="Add Currency Wallet"
-        subtitle="Open new sovereign and international multi-currency accounts"
+        subtitle="Currency account activation is unavailable in this preview."
         maxWidth="md"
       >
         <div className="space-y-4 pt-2">
           <p className="text-xs text-slate-600 dark:text-slate-300">
-            Select an additional currency to activate an instant IBAN, routing code, or local clearing account number.
+            Currency choices are illustrative. No account details, IBAN, routing code, or clearing account can be activated here.
           </p>
 
           <div className="grid grid-cols-2 gap-3">
@@ -490,7 +482,7 @@ export const WalletsScreen: React.FC = () => {
                 onClick={() => {
                   playHaptic('medium');
                   setAddWalletModalOpen(false);
-                  showDynamicIsland('Wallet Activated', `${c.name} (${c.code}) wallet is ready`, 'success');
+                  showDynamicIsland('Wallet unavailable', 'No currency account was created. Wallet activation is not connected.', 'security');
                 }}
                 className="flex items-center gap-3 p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.05] border border-slate-200/80 dark:border-white/10 hover:border-emerald-500/50 text-left transition-all cursor-pointer group"
               >

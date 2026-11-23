@@ -134,7 +134,7 @@ export const BillsScreen: React.FC = () => {
           Airtime, Data & Utility Bills
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-          Instant recharge across all Nigerian networks, prepaid meter token generation, and cable renewals
+          Preview only. Airtime, data, utility, and cable provider integrations are unavailable.
         </p>
       </div>
 
@@ -410,7 +410,7 @@ export const BillsScreen: React.FC = () => {
             size="lg"
             onClick={() => {
               playHaptic('medium');
-              showDynamicIsland('Cable Renewed', `${cableProvider} activated for ${smartcardNo}`, 'success');
+              showDynamicIsland('Cable payment unavailable', 'No provider is connected. No payment or renewal was made.', 'security');
             }}
             className="w-full"
           >
@@ -426,7 +426,7 @@ export const BillsScreen: React.FC = () => {
             <Globe size={24} className="text-emerald-400" />
             <div>
               <p className="text-sm font-bold">Starlink High-Speed Satellite Internet</p>
-              <p className="text-xs text-slate-400">Direct integration with Starlink Nigeria accounts</p>
+              <p className="text-xs text-slate-400">No ISP account or billing integration is connected.</p>
             </div>
           </div>
 

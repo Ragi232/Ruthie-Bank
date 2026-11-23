@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import {
   AIMessage,
   AuthSubView,
@@ -83,7 +83,7 @@ interface BankContextType {
     category: SupportTicketItem['category'];
     priority: SupportTicketItem['priority'];
     message: string;
-  }) => SupportTicketItem;
+  }) => void;
   sendTicketReply: (ticketId: string, text: string) => void;
 
   // Admin Console State & Actions
@@ -193,7 +193,12 @@ export const BankProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [authSubView, setAuthSubView] = useState<AuthSubView>('login');
   const [user, setUser] = useState<UserProfile>(initialUser);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
+  const [isAuthenticated, setAuthenticatedState] = useState<boolean>(false);
+  const authRevision = useRef(0);
+  const setIsAuthenticated = (authenticated: boolean) => {
+    authRevision.current += 1;
+    setAuthenticatedState(authenticated);
+  };
   const [balanceVisible, setBalanceVisible] = useState<boolean>(true);
   const [selectedCurrency, setSelectedCurrency] = useState<CurrencyCode>('NGN');
 
@@ -211,7 +216,7 @@ export const BankProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [billsActiveTab, setBillsActiveTab] = useState<'airtime' | 'data' | 'electricity' | 'cable' | 'internet'>('airtime');
 
   // Customer Support Tickets
-  const [supportTickets, setSupportTickets] = useState<SupportTicketItem[]>([
+  const [supportTickets] = useState<SupportTicketItem[]>([
     {
       id: 'TICK-8092',
       subject: 'Virtual Card Foreign Currency Limit Extension',
@@ -331,30 +336,12 @@ export const BankProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // AI Chat Messages
   const [aiMessages, setAiMessages] = useState<AIMessage[]>([
     {
-      id: 'ai_welcome',
-      sender: 'assistant',
-      content:
-        'Hello Ruthie! ✦ I am your Ruthie AI Financial Intelligence companion. I have reviewed your portfolio across your NGN, USD, and GBP accounts. Your net liquid wealth grew by +14.2% this quarter. How can I assist you with your investments, FX conversions, or savings goals today?',
-      timestamp: 'Just now',
-      suggestions: [
-        'Analyze my spending this month',
-        'How can I save ₦500,000 for travel in 3 months?',
-        'What are the best Eurobond yields right now?',
-        'Simulate converting $2,000 to NGN',
-      ],
-      dataCard: {
-        type: 'projection',
-        title: 'Ruthie Intelligence Snapshot',
-        value: '₦10,845,950 Liquid Portfolio',
-        details: [
-          'High-yield Vault active at 18.5% APY',
-          'FX Exposure: 64% NGN, 24% USD, 12% GBP',
-          'Credit Score: 785/850 (Tier 1 Prime)',
-        ],
-      },
+      id: "ai_unavailable",
+      sender: "assistant",
+      content: "Ruthie AI is not connected. It cannot access account data, verify payments, or make recommendations.",
+      timestamp: "Now",
     },
-  ]);
-  const [isAITyping, setIsAITyping] = useState<boolean>(false);
+  ]);  const [isAITyping, setIsAITyping] = useState<boolean>(false);
 
   // Synchronize theme with DOM
   useEffect(() => {
@@ -365,6 +352,30 @@ export const BankProvider: React.FC<{ children: React.ReactNode }> = ({ children
       root.classList.remove('dark');
     }
   }, [theme]);
+
+  useEffect(() => {
+    const revision = authRevision.current;
+    let active = true;
+
+    fetch('/api/auth/session', { cache: 'no-store' })
+      .then(async (response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (!active || authRevision.current !== revision) return;
+        if (data?.user) {
+          setUser((current) => ({ ...current, ...data.user }));
+          setAuthenticatedState(true);
+        } else {
+          setAuthenticatedState(false);
+        }
+      })
+      .catch(() => {
+        if (active && authRevision.current === revision) setAuthenticatedState(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
@@ -451,779 +462,94 @@ export const BankProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setDynamicIsland((prev) => ({ ...prev, active: false }));
   };
 
+  const showUnavailableOperation = (operation: string) => {
+    showDynamicIsland({
+      title: `${operation} unavailable`,
+      subtitle: 'Sandbox preview only. No provider is connected and no changes were made.',
+      type: 'security',
+      durationMs: 6000,
+    });
+  };
+
   // Money Movement: Withdrawal (ATM Cardless or Bank Wire Cash Out)
-  const withdrawMoney = async ({
-    method,
-    amount,
-    currency,
-    bankName = 'GTBank',
-    accountNumber = '0123456789',
-    recipientName = 'Ruthie Adebayo',
-    description = '',
-  }: {
-    method: 'atm' | 'bank';
-    amount: number;
-    currency: CurrencyCode;
-    bankName?: string;
-    accountNumber?: string;
-    recipientName?: string;
-    description?: string;
-  }) => {
-    playHaptic('medium');
-
-    const wallet = wallets.find((w) => w.currency === currency);
-    if (!wallet || wallet.availableBalance < amount) {
-      showDynamicIsland({
-        title: 'Withdrawal Declined',
-        subtitle: 'Insufficient balance in selected wallet',
-        type: 'security',
-      });
-      return { success: false, error: 'Insufficient funds' };
-    }
-
-    const cashCode =
-      method === 'atm'
-        ? `${Math.floor(1000 + Math.random() * 9000)} ${Math.floor(1000 + Math.random() * 9000)}`
-        : undefined;
-
-    const newTx: TransactionRecord = {
-      id: `tx_wth_${Date.now()}`,
-      reference: `WTH-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(
-        1000 + Math.random() * 9000
-      )}`,
-      idempotencyKey: crypto.randomUUID(),
-      type: 'WITHDRAWAL',
-      title: method === 'atm' ? 'ATM Cardless Cash Out' : `Cash Out to ${bankName}`,
-      description:
-        description ||
-        (method === 'atm'
-          ? `One-Time ATM Cash Code: ${cashCode} (Valid 15 mins)`
-          : `Settlement to ${accountNumber}`),
-      recipientOrSender: method === 'atm' ? 'Self (Any Partner ATM)' : `${recipientName} (${bankName})`,
-      amount,
-      fee: 0,
-      currency,
-      timestamp: 'Just now',
-      status: 'SUCCEEDED',
-      category: 'transfer',
-      metadata: { method, cashCode, bankName, accountNumber },
-    };
-
-    setWallets((prev) =>
-      prev.map((w) =>
-        w.currency === currency
-          ? {
-              ...w,
-              balance: w.balance - amount,
-              availableBalance: w.availableBalance - amount,
-            }
-          : w
-      )
-    );
-
-    setTransactions((prev) => [newTx, ...prev]);
-    setActiveReceipt(newTx);
-
-    showDynamicIsland({
-      title: method === 'atm' ? 'ATM Cash Code Ready' : 'Cash Out Dispatched',
-      subtitle:
-        method === 'atm'
-          ? `Code ${cashCode} generated for ${wallet.symbol}${amount.toLocaleString()}`
-          : `${wallet.symbol}${amount.toLocaleString()} sent to ${bankName}`,
-      type: 'outgoing',
-      amount: `${wallet.symbol}${amount.toLocaleString()}`,
-      reference: newTx.reference,
-      expanded: true,
-      primaryAction: {
-        label: method === 'atm' ? 'View Code' : 'View Receipt',
-        action: () => setActiveReceipt(newTx),
-      },
-    });
-
-    return { success: true, cashCode, transaction: newTx };
+  const withdrawMoney: BankContextType["withdrawMoney"] = async (_params) => {
+    showUnavailableOperation("Withdrawal");
+    return { success: false, error: "FINANCIAL_OPERATIONS_UNAVAILABLE" };
   };
-
   // Support Ticket Actions
-  const createSupportTicket = ({
-    subject,
-    category,
-    priority,
-    message,
-  }: {
-    subject: string;
-    category: SupportTicketItem['category'];
-    priority: SupportTicketItem['priority'];
-    message: string;
-  }) => {
-    playHaptic('medium');
-    const newTicket: SupportTicketItem = {
-      id: `TICK-${Math.floor(1000 + Math.random() * 9000)}`,
-      subject,
-      category,
-      priority,
-      status: 'OPEN',
-      createdAt: 'Just now',
-      messages: [
-        {
-          id: `msg_${Date.now()}`,
-          sender: 'user',
-          senderName: `${user.firstName} ${user.lastName}`,
-          text: message,
-          timestamp: 'Just now',
-        },
-      ],
-    };
-
-    setSupportTickets((prev) => [newTicket, ...prev]);
-    showDynamicIsland({
-      title: 'Support Ticket Dispatched',
-      subtitle: `Ticket #${newTicket.id} assigned to Tier 3 Priority Desk`,
-      type: 'success',
-      reference: newTicket.id,
-    });
-
-    setTimeout(() => {
-      setSupportTickets((prev) =>
-        prev.map((t) =>
-          t.id === newTicket.id
-            ? {
-                ...t,
-                status: 'IN_REVIEW',
-                messages: [
-                  ...t.messages,
-                  {
-                    id: `msg_${Date.now()}`,
-                    sender: 'agent',
-                    senderName: 'Sola (Ruthie Priority Care)',
-                    text: `Hello ${user.firstName}, I have received your request regarding "${subject}". I am reviewing your account records now.`,
-                    timestamp: 'Just now',
-                  },
-                ],
-              }
-            : t
-        )
-      );
-    }, 1500);
-
-    return newTicket;
+  const createSupportTicket: BankContextType['createSupportTicket'] = (_params) => {
+    showUnavailableOperation('Support request');
   };
 
-  const sendTicketReply = (ticketId: string, text: string) => {
-    if (!text.trim()) return;
-    playHaptic('light');
-
-    setSupportTickets((prev) =>
-      prev.map((t) =>
-        t.id === ticketId
-          ? {
-              ...t,
-              messages: [
-                ...t.messages,
-                {
-                  id: `msg_u_${Date.now()}`,
-                  sender: 'user',
-                  senderName: `${user.firstName} ${user.lastName}`,
-                  text,
-                  timestamp: 'Just now',
-                },
-              ],
-            }
-          : t
-      )
-    );
-
-    setTimeout(() => {
-      setSupportTickets((prev) =>
-        prev.map((t) =>
-          t.id === ticketId
-            ? {
-                ...t,
-                messages: [
-                  ...t.messages,
-                  {
-                    id: `msg_a_${Date.now()}`,
-                    sender: 'agent',
-                    senderName: 'Sola (Ruthie Priority Care)',
-                    text: 'Thank you for the update. Our operations desk has noted this detail.',
-                    timestamp: 'Just now',
-                  },
-                ],
-              }
-            : t
-        )
-      );
-    }, 1200);
+  const sendTicketReply: BankContextType['sendTicketReply'] = (_ticketId, text) => {
+    if (text.trim()) showUnavailableOperation('Support reply');
   };
 
   // Admin Actions
-  const adminUpdateUserStatus = (userId: string, status: 'ACTIVE' | 'LOCKED') => {
-    playHaptic('medium');
-    setAdminUsers((prev) =>
-      prev.map((u) => (u.id === userId ? { ...u, status } : u))
-    );
-    showDynamicIsland({
-      title: 'User Status Updated',
-      subtitle: `Account ${status === 'ACTIVE' ? 'activated' : 'locked'} by Admin`,
-      type: status === 'ACTIVE' ? 'success' : 'security',
-    });
+  const adminUpdateUserStatus: BankContextType["adminUpdateUserStatus"] = (_userId, _status) => {
+    showUnavailableOperation("Administrator action");
   };
 
-  const adminApproveKyc = (userId: string, tier: 1 | 2 | 3) => {
-    playHaptic('success');
-    setAdminUsers((prev) =>
-      prev.map((u) => (u.id === userId ? { ...u, tier, kycVerified: true } : u))
-    );
-    showDynamicIsland({
-      title: 'KYC Verified',
-      subtitle: `User upgraded to Tier ${tier}`,
-      type: 'success',
-    });
+  const adminApproveKyc: BankContextType["adminApproveKyc"] = (_userId, _tier) => {
+    showUnavailableOperation("KYC review");
   };
-
   // Money Movement: Transfer
-  const transferMoney = async ({
-    recipientName,
-    accountOrTag,
-    bankName,
-    amount,
-    currency,
-    description,
-    fee = 0,
-  }: {
-    recipientName: string;
-    accountOrTag: string;
-    bankName: string;
-    amount: number;
-    currency: CurrencyCode;
-    description: string;
-    fee?: number;
-  }) => {
-    playHaptic('medium');
-
-    const wallet = wallets.find((w) => w.currency === currency);
-    if (!wallet || wallet.availableBalance < amount + fee) {
-      showDynamicIsland('Transfer Declined', 'Insufficient available funds in this wallet', 'security');
-      return { success: false, error: 'Insufficient funds' };
-    }
-
-    const newTx: TransactionRecord = {
-      id: `tx_${Date.now()}`,
-      reference: `REF-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(
-        1000 + Math.random() * 9000
-      )}`,
-      idempotencyKey: crypto.randomUUID(),
-      type: 'TRANSFER_OUT',
-      title: bankName === 'Ruthie Bank' ? 'Ruthie Instant Send' : `Bank Transfer · ${bankName}`,
-      description: description || `Transfer to ${recipientName}`,
-      recipientOrSender: `${recipientName} (${accountOrTag})`,
-      amount,
-      fee,
-      currency,
-      timestamp: 'Just now',
-      status: 'SUCCEEDED',
-      category: 'transfer',
-      metadata: { bankName, accountOrTag },
-    };
-
-    // Deduct balance
-    setWallets((prev) =>
-      prev.map((w) =>
-        w.currency === currency
-          ? {
-              ...w,
-              balance: w.balance - (amount + fee),
-              availableBalance: w.availableBalance - (amount + fee),
-            }
-          : w
-      )
-    );
-
-    setTransactions((prev) => [newTx, ...prev]);
-    setActiveReceipt(newTx);
-
-    showDynamicIsland(
-      'Transfer Completed',
-      `${wallet.symbol}${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })} sent to ${recipientName}`,
-      'success'
-    );
-
-    return { success: true, transaction: newTx };
+  const transferMoney: BankContextType["transferMoney"] = async (_params) => {
+    showUnavailableOperation("Transfer");
+    return { success: false, error: "FINANCIAL_OPERATIONS_UNAVAILABLE" };
   };
-
   // Currency Conversion
-  const convertCurrency = async ({
-    fromCurrency,
-    toCurrency,
-    fromAmount,
-    toAmount,
-    rate,
-  }: {
-    fromCurrency: CurrencyCode;
-    toCurrency: CurrencyCode;
-    fromAmount: number;
-    toAmount: number;
-    rate: number;
-  }) => {
-    playHaptic('medium');
-
-    const sourceWallet = wallets.find((w) => w.currency === fromCurrency);
-    if (!sourceWallet || sourceWallet.availableBalance < fromAmount) {
-      showDynamicIsland('Conversion Failed', 'Insufficient balance in source wallet', 'security');
-      return { success: false, error: 'Insufficient source funds' };
-    }
-
-    const newTx: TransactionRecord = {
-      id: `tx_fx_${Date.now()}`,
-      reference: `FX-${Date.now().toString().slice(-8)}`,
-      idempotencyKey: crypto.randomUUID(),
-      type: 'EXCHANGE',
-      title: 'Currency Conversion',
-      description: `Exchanged ${sourceWallet.symbol}${fromAmount.toLocaleString()} to ${toCurrency} @ rate ${rate.toLocaleString()}`,
-      recipientOrSender: `Ruthie FX Desk (${fromCurrency} → ${toCurrency})`,
-      amount: toAmount,
-      fee: 0,
-      currency: toCurrency,
-      timestamp: 'Just now',
-      status: 'SUCCEEDED',
-      category: 'fx',
-    };
-
-    setWallets((prev) =>
-      prev.map((w) => {
-        if (w.currency === fromCurrency) {
-          return {
-            ...w,
-            balance: w.balance - fromAmount,
-            availableBalance: w.availableBalance - fromAmount,
-          };
-        }
-        if (w.currency === toCurrency) {
-          return {
-            ...w,
-            balance: w.balance + toAmount,
-            availableBalance: w.availableBalance + toAmount,
-          };
-        }
-        return w;
-      })
-    );
-
-    setTransactions((prev) => [newTx, ...prev]);
-    setActiveReceipt(newTx);
-
-    showDynamicIsland(
-      'FX Swap Completed',
-      `Converted to ${toCurrency} ${toAmount.toLocaleString()}`,
-      'success'
-    );
-
-    return { success: true, transaction: newTx };
+  const convertCurrency: BankContextType["convertCurrency"] = async (_params) => {
+    showUnavailableOperation("Currency conversion");
+    return { success: false, error: "FINANCIAL_OPERATIONS_UNAVAILABLE" };
   };
-
   // Pay Utility Bill or Airtime
-  const payBillOrAirtime = async ({
-    providerId,
-    providerName,
-    category,
-    beneficiaryNumber,
-    amount,
-    planName,
-  }: {
-    providerId: string;
-    providerName: string;
-    category: 'telco' | 'electricity' | 'cable' | 'internet' | 'water' | 'education';
-    beneficiaryNumber: string;
-    amount: number;
-    planName?: string;
-  }) => {
-    playHaptic('medium');
-
-    const ngnWallet = wallets.find((w) => w.currency === 'NGN');
-    if (!ngnWallet || ngnWallet.availableBalance < amount) {
-      showDynamicIsland('Payment Failed', 'Insufficient Naira balance', 'security');
-      return { success: false };
-    }
-
-    const token =
-      category === 'electricity'
-        ? `${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(
-            1000 + Math.random() * 9000
-          )}-${Math.floor(1000 + Math.random() * 9000)}`
-        : undefined;
-
-    const newTx: TransactionRecord = {
-      id: `tx_bill_${Date.now()}`,
-      reference: `BILL-${Date.now().toString().slice(-8)}`,
-      idempotencyKey: crypto.randomUUID(),
-      type: category === 'telco' ? 'AIRTIME' : 'BILL_PAYMENT',
-      title: `${providerName} ${planName ? `· ${planName}` : ''}`,
-      description: token ? `Prepaid Token: ${token}` : `${category.toUpperCase()} for ${beneficiaryNumber}`,
-      recipientOrSender: `${beneficiaryNumber} (${providerName})`,
-      amount,
-      fee: category === 'electricity' ? 100 : 0,
-      currency: 'NGN',
-      timestamp: 'Just now',
-      status: 'SUCCEEDED',
-      category: 'bills',
-      metadata: { token, providerId, planName },
-    };
-
-    setWallets((prev) =>
-      prev.map((w) =>
-        w.currency === 'NGN'
-          ? {
-              ...w,
-              balance: w.balance - (amount + (category === 'electricity' ? 100 : 0)),
-              availableBalance: w.availableBalance - (amount + (category === 'electricity' ? 100 : 0)),
-            }
-          : w
-      )
-    );
-
-    setTransactions((prev) => [newTx, ...prev]);
-    setActiveReceipt(newTx);
-
-    showDynamicIsland(
-      `${providerName} Successful`,
-      token ? `Token: ${token}` : `₦${amount.toLocaleString()} recharged`,
-      'success'
-    );
-
-    return { success: true, transaction: newTx, token };
+  const payBillOrAirtime: BankContextType["payBillOrAirtime"] = async (_params) => {
+    showUnavailableOperation("Bill payment");
+    return { success: false };
   };
-
   // Savings Goal creation & deposit
-  const createSavingsGoal = (goal: Omit<SavingsGoal, 'id' | 'status' | 'currentAmount'>) => {
-    const newGoal: SavingsGoal = {
-      ...goal,
-      id: `sav_${Date.now()}`,
-      currentAmount: 0,
-      status: 'ACTIVE',
-    };
-    setSavingsGoals((prev) => [newGoal, ...prev]);
-    showDynamicIsland('Savings Goal Created', `Target: ${newGoal.title}`, 'success');
+  const createSavingsGoal: BankContextType["createSavingsGoal"] = (_goal) => {
+    showUnavailableOperation("Savings goal");
   };
 
-  const depositToSavings = (goalId: string, amount: number) => {
-    const goal = savingsGoals.find((g) => g.id === goalId);
-    if (!goal) return;
-
-    setWallets((prev) =>
-      prev.map((w) =>
-        w.currency === goal.currency
-          ? { ...w, balance: w.balance - amount, availableBalance: w.availableBalance - amount }
-          : w
-      )
-    );
-
-    setSavingsGoals((prev) =>
-      prev.map((g) => (g.id === goalId ? { ...g, currentAmount: g.currentAmount + amount } : g))
-    );
-
-    const newTx: TransactionRecord = {
-      id: `tx_sav_${Date.now()}`,
-      reference: `SAV-${Date.now().toString().slice(-8)}`,
-      idempotencyKey: crypto.randomUUID(),
-      type: 'SAVINGS_DEPOSIT',
-      title: `Deposit to ${goal.title}`,
-      description: `Compounding at ${goal.interestRate}% APY`,
-      recipientOrSender: `Ruthie Vault / ${goal.title}`,
-      amount,
-      fee: 0,
-      currency: goal.currency,
-      timestamp: 'Just now',
-      status: 'SUCCEEDED',
-      category: 'savings',
-    };
-
-    setTransactions((prev) => [newTx, ...prev]);
-    showDynamicIsland('Vault Funded', `₦${amount.toLocaleString()} added to ${goal.title}`, 'success');
+  const depositToSavings: BankContextType["depositToSavings"] = (_goalId, _amount) => {
+    showUnavailableOperation("Savings deposit");
   };
-
   // Investment
-  const investInProduct = (productId: string, units: number) => {
-    const prod = investments.find((p) => p.id === productId);
-    if (!prod) return;
-
-    const totalCost = units * prod.pricePerUnit;
-    const wallet = wallets.find((w) => w.currency === prod.currency);
-    if (!wallet || wallet.availableBalance < totalCost) {
-      showDynamicIsland('Investment Declined', 'Insufficient balance in investment currency', 'security');
-      return;
-    }
-
-    setWallets((prev) =>
-      prev.map((w) =>
-        w.currency === prod.currency
-          ? { ...w, balance: w.balance - totalCost, availableBalance: w.availableBalance - totalCost }
-          : w
-      )
-    );
-
-    const newInv: UserInvestment = {
-      id: `uinv_${Date.now()}`,
-      productId: prod.id,
-      productName: prod.name,
-      units,
-      investedAmount: totalCost,
-      currentValue: totalCost,
-      accruedReturn: 0,
-      currency: prod.currency,
-      startDate: 'Today',
-      maturityDate: `${prod.tenureDays} days`,
-      status: 'ACTIVE',
-    };
-
-    setUserInvestments((prev) => [newInv, ...prev]);
-
-    const newTx: TransactionRecord = {
-      id: `tx_inv_${Date.now()}`,
-      reference: `INV-${Date.now().toString().slice(-8)}`,
-      idempotencyKey: crypto.randomUUID(),
-      type: 'INVESTMENT_PURCHASE',
-      title: prod.name,
-      description: `Purchased ${units} units @ ${prod.currency} ${prod.pricePerUnit}`,
-      recipientOrSender: prod.issuer,
-      amount: totalCost,
-      fee: 0,
-      currency: prod.currency,
-      timestamp: 'Just now',
-      status: 'SUCCEEDED',
-      category: 'investment',
-    };
-
-    setTransactions((prev) => [newTx, ...prev]);
-    showDynamicIsland('Investment Allocated', `${units} units of ${prod.name}`, 'success');
+  const investInProduct: BankContextType["investInProduct"] = (_productId, _units) => {
+    showUnavailableOperation("Investment purchase");
   };
-
   // Loan Repayment
-  const repayActiveLoan = (amount: number) => {
-    const active = loanEligibility.currentActiveLoan;
-    if (!active) return;
-
-    setWallets((prev) =>
-      prev.map((w) =>
-        w.currency === 'NGN'
-          ? { ...w, balance: w.balance - amount, availableBalance: w.availableBalance - amount }
-          : w
-      )
-    );
-
-    const updatedRemaining = Math.max(0, active.amountDue - amount);
-    setLoanEligibility((prev: LoanEligibility) => ({
-      ...prev,
-      creditScore: Math.min(850, prev.creditScore + 10),
-      currentActiveLoan: prev.currentActiveLoan
-        ? {
-            ...prev.currentActiveLoan,
-            amountDue: updatedRemaining,
-            repaidAmount: prev.currentActiveLoan.repaidAmount + amount,
-            status: updatedRemaining === 0 ? 'REPAID' : 'ACTIVE',
-          }
-        : undefined,
-    }));
-
-    const newTx: TransactionRecord = {
-      id: `tx_loan_${Date.now()}`,
-      reference: `LN-REP-${Date.now().toString().slice(-8)}`,
-      idempotencyKey: crypto.randomUUID(),
-      type: 'LOAN_REPAYMENT',
-      title: 'Loan Installment Repaid',
-      description: 'Prime Credit Facility installment',
-      recipientOrSender: 'Ruthie Microfinance Credit Desk',
-      amount,
-      fee: 0,
-      currency: 'NGN',
-      timestamp: 'Just now',
-      status: 'SUCCEEDED',
-      category: 'bills',
-    };
-
-    setTransactions((prev) => [newTx, ...prev]);
-    showDynamicIsland('Loan Repaid', `₦${amount.toLocaleString()} paid. Credit score +10!`, 'success');
+  const repayActiveLoan: BankContextType["repayActiveLoan"] = (_amount) => {
+    showUnavailableOperation("Loan repayment");
   };
 
-  const applyForLoan = (amount: number, tenureMonths: number, purpose: string) => {
-    const interest = amount * 0.02 * tenureMonths;
-    const totalDue = amount + interest;
-
-    setWallets((prev) =>
-      prev.map((w) =>
-        w.currency === 'NGN'
-          ? { ...w, balance: w.balance + amount, availableBalance: w.availableBalance + amount }
-          : w
-      )
-    );
-
-    setLoanEligibility((prev: LoanEligibility) => ({
-      ...prev,
-      currentActiveLoan: {
-        id: `ln_${Date.now()}`,
-        principal: amount,
-        interestRate: 2.0,
-        amountDue: totalDue,
-        repaidAmount: 0,
-        nextDueDate: '18 Dec 2026',
-        durationMonths: tenureMonths,
-        monthlyInstallment: totalDue / tenureMonths,
-        status: 'ACTIVE',
-      },
-    }));
-
-    const newTx: TransactionRecord = {
-      id: `tx_disb_${Date.now()}`,
-      reference: `LN-DISB-${Date.now().toString().slice(-8)}`,
-      idempotencyKey: crypto.randomUUID(),
-      type: 'LOAN_DISBURSEMENT',
-      title: 'Credit Facility Disbursed',
-      description: `Approved for ${purpose}`,
-      recipientOrSender: 'Ruthie Credit Desk',
-      amount,
-      fee: 0,
-      currency: 'NGN',
-      timestamp: 'Just now',
-      status: 'SUCCEEDED',
-      category: 'transfer',
-    };
-
-    setTransactions((prev) => [newTx, ...prev]);
-    showDynamicIsland('Loan Disbursed', `₦${amount.toLocaleString()} credited to your wallet`, 'success');
+  const applyForLoan: BankContextType["applyForLoan"] = (_amount, _tenureMonths, _purpose) => {
+    showUnavailableOperation("Loan application");
   };
-
   // Lifestyle Booking
-  const bookService = (item: BookingItem) => {
-    const wallet = wallets.find((w) => w.currency === item.currency);
-    if (!wallet || wallet.availableBalance < item.price) {
-      showDynamicIsland('Booking Failed', 'Insufficient funds', 'security');
-      return;
-    }
-
-    setWallets((prev) =>
-      prev.map((w) =>
-        w.currency === item.currency
-          ? { ...w, balance: w.balance - item.price, availableBalance: w.availableBalance - item.price }
-          : w
-      )
-    );
-
-    const newTx: TransactionRecord = {
-      id: `tx_bk_${Date.now()}`,
-      reference: `BOOK-${Date.now().toString().slice(-8)}`,
-      idempotencyKey: crypto.randomUUID(),
-      type: 'BOOKING',
-      title: item.title,
-      description: item.subtitle,
-      recipientOrSender: `Ruthie Concierge · ${item.category.toUpperCase()}`,
-      amount: item.price,
-      fee: 0,
-      currency: item.currency,
-      timestamp: 'Just now',
-      status: 'SUCCEEDED',
-      category: 'lifestyle',
-    };
-
-    setTransactions((prev) => [newTx, ...prev]);
-    setActiveReceipt(newTx);
-    showDynamicIsland('Booking Confirmed', item.title, 'success');
+  const bookService: BankContextType["bookService"] = (_item) => {
+    showUnavailableOperation("Booking");
   };
-
   // Ruthie AI Financial Intelligence responder
-  const sendAIMessage = (text: string) => {
-    if (!text.trim()) return;
+  const sendAIMessage: BankContextType["sendAIMessage"] = (text) => {
+    const normalized = text.trim();
+    if (!normalized) return;
 
-    const userMsg: AIMessage = {
-      id: `msg_u_${Date.now()}`,
-      sender: 'user',
-      content: text,
-      timestamp: 'Just now',
-    };
-
-    setAiMessages((prev) => [...prev, userMsg]);
-    setIsAITyping(true);
-    playHaptic('light');
-
-    setTimeout(() => {
-      let replyContent = '';
-      let suggestions: string[] = [];
-      let dataCard: AIMessage['dataCard'] = undefined;
-
-      const lower = text.toLowerCase();
-      if (lower.includes('spend') || lower.includes('budget') || lower.includes('analyze')) {
-        replyContent =
-          'I analyzed your spending patterns over the last 30 days. You have allocated ₦284,500 across utilities, travel, and transfers. Your discretionary spending is down 11%, leaving an extra ₦150,000 surplus this month. I recommend sweeping ₦100,000 into the Ruthie Vault at 18.5% APY.';
-        suggestions = ['Move ₦100k to Vault now', 'View category breakdown', 'Set ₦50k weekly budget'];
-        dataCard = {
-          type: 'spending',
-          title: 'Monthly Cash Flow Diagnostic',
-          value: '+₦150,000 Net Surplus',
-          details: [
-            'Fixed Bills: ₦68,000 (24%)',
-            'Transfers & Lifestyle: ₦145,000 (51%)',
-            'Savings & Investments: ₦71,500 (25%)',
-          ],
-        };
-      } else if (lower.includes('save') || lower.includes('500') || lower.includes('travel')) {
-        replyContent =
-          'To reach ₦500,000 in 90 days, you need to save ₦41,666 weekly or ₦166,666 monthly. With Ruthie Vault compounding at 16.5% APY, you will also earn ₦12,450 in passive interest over that duration, shortening your target date by 6 days!';
-        suggestions = ['Set up ₦41,666 weekly auto-save', 'Lock ₦200k lump sum upfront', 'Explore Eurobonds'];
-        dataCard = {
-          type: 'projection',
-          title: '3-Month Target Savings Trajectory',
-          value: '₦512,450 Projected Balance',
-          details: [
-            'Target: ₦500,000.00',
-            'Accrued Interest: +₦12,450.00',
-            'Recommended Frequency: Weekly auto-debit',
-          ],
-        };
-      } else if (lower.includes('eurobond') || lower.includes('invest') || lower.includes('yield')) {
-        replyContent =
-          'The Federal Republic of Nigeria 2029 Eurobond is currently yielding 9.85% in pure USD terms, backed by sovereign oil receipts. Alternatively, our Ruthie High-Yield Treasury Bills fund offers 21.4% APY in NGN. Since you hold $4,850 in your USD wallet, investing $1,500 would generate ~$147 USD annual passive yield with zero exchange rate volatility.';
-        suggestions = ['Invest $1,000 in FRN Eurobond', 'Invest ₦250k in Treasury Bills', 'Compare Risk Profiles'];
-        dataCard = {
-          type: 'projection',
-          title: 'Investment Yield Comparison',
-          value: '9.85% USD / 21.4% NGN',
-          details: [
-            'FRN Eurobond 2029: 9.85% USD (Sovereign Guaranteed)',
-            'Ruthie T-Bills Fund: 21.4% NGN (Zero default history)',
-            'Tech Titans Index: 28.6% (Moderate equity risk)',
-          ],
-        };
-      } else if (lower.includes('convert') || lower.includes('dollar') || lower.includes('fx')) {
-        replyContent =
-          'The current mid-market rate is ₦1,540.50 per 1 USD with 0% conversion markup on Ruthie Bank. Converting $2,000 USD right now yields exactly ₦3,081,000.00 NGN directly credited to your primary wallet. Over the past 7 days, USD has strengthened by +0.8%.';
-        suggestions = ['Convert $2,000 now', 'Set FX rate alert for ₦1,550', 'View 30-day FX chart'];
-        dataCard = {
-          type: 'rate',
-          title: 'Live Exchange Execution Rate',
-          value: '1 USD = ₦1,540.50 NGN',
-          details: [
-            'Institutional Spread: 0.00%',
-            'Settlement Speed: Instant (0 seconds)',
-            'Quote Expiry: 60 seconds guaranteed',
-          ],
-        };
-      } else {
-        replyContent = `Understood! I've analyzed your question regarding "${text}". As your private banking AI, I can execute transfers, rebalance your currency allocations, optimize your credit score (currently 785/850), or automatically compound your excess cash. What would you like me to prioritize?`;
-        suggestions = ['Analyze my spending', 'Compare savings yields', 'Check exchange rates'];
-      }
-
-      const aiMsg: AIMessage = {
-        id: `msg_a_${Date.now()}`,
-        sender: 'assistant',
-        content: replyContent,
-        timestamp: 'Just now',
-        suggestions,
-        dataCard,
-      };
-
-      setAiMessages((prev) => [...prev, aiMsg]);
-      setIsAITyping(false);
-      playHaptic('light');
-    }, 900);
+    const now = new Date().toLocaleTimeString();
+    setAiMessages((previous) => [
+      ...previous,
+      { id: crypto.randomUUID(), sender: "user", content: normalized, timestamp: now },
+      {
+        id: crypto.randomUUID(),
+        sender: "assistant",
+        content: "Ruthie AI is not connected. It cannot access account data, verify payments, or make recommendations. Check verified transaction records or contact customer support.",
+        timestamp: now,
+      },
+    ]);
+    setIsAITyping(false);
   };
-
   const markNotificationRead = (id: string) => {
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: true } : n))

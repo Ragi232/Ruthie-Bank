@@ -27,7 +27,7 @@ import {
 import { ScreenType } from '@/types';
 
 export const GlassSidebar: React.FC = () => {
-  const { currentScreen, setCurrentScreen, user, theme, toggleTheme, playHaptic, setIsAuthenticated, notifications } = useBank();
+  const { currentScreen, setCurrentScreen, user, theme, toggleTheme, playHaptic, setIsAuthenticated, notifications, showDynamicIsland } = useBank();
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -76,10 +76,20 @@ export const GlassSidebar: React.FC = () => {
     setCurrentScreen(screen);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     playHaptic('medium');
-    setIsAuthenticated(false);
-    setCurrentScreen('auth');
+    try {
+      const response = await fetch('/api/auth/logout', { method: 'POST', cache: 'no-store' });
+      if (!response.ok) throw new Error('Logout request was rejected');
+      setIsAuthenticated(false);
+      setCurrentScreen('auth');
+    } catch {
+      showDynamicIsland({
+        title: 'Sign out failed',
+        subtitle: 'The server could not revoke this session. Try again.',
+        type: 'security',
+      });
+    }
   };
 
   return (

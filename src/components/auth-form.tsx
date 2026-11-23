@@ -39,7 +39,7 @@ export function AuthForm({ mode }: Props) {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error?.message ?? "Something went wrong. Please try again.");
       if (mode === "login") { router.push("/"); router.refresh(); return; }
-      if (mode === "verify") { setMessage("Email verified. Your sandbox profile is ready."); router.push("/"); router.refresh(); return; }
+      if (mode === "verify") { setMessage("Email verified. Your sandbox profile was created."); router.push("/"); router.refresh(); return; }
       if (mode === "register") {
         setMessage(result.message);
         if (result.verification?.code) setDevCode(result.verification.code);

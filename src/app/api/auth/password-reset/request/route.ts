@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import { allowAuthAttempt, authConfigurationReady, createOtpChallenge } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { passwordResetStartSchema } from "@/lib/validation";
+import { isSameOriginMutation } from "@/lib/security";
 
 export async function POST(request: Request) {
+  if (!isSameOriginMutation(request)) return NextResponse.json({ error: { code: "INVALID_ORIGIN", message: "This request origin is not allowed." } }, { status: 403 });
   if (!authConfigurationReady()) return NextResponse.json({ error: { code: "AUTH_NOT_CONFIGURED", message: "Password reset is not configured on this server." } }, { status: 503 });
   const parsed = passwordResetStartSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: { code: "INVALID_INPUT", message: "Enter a valid email address." } }, { status: 400 });
